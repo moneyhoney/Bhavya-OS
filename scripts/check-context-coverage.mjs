@@ -1,7 +1,8 @@
 import { readdir } from "node:fs/promises";
-import { join, relative, resolve } from "node:path";
+import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = resolve(new URL("..", import.meta.url).pathname);
+const root = fileURLToPath(new URL("..", import.meta.url));
 const excluded = new Set([".git", ".next", "node_modules", "coverage"]);
 
 async function walk(directory) {
