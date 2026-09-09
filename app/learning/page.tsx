@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function LearningPage(){return <main className="shell simple-page"><p className="eyebrow">Free AI learning</p><h1>Learn, practice, experiment and build.</h1><p>Bhavya is establishing a free AI learning ecosystem for students, including learners who may not have a computer at home. The curriculum and enrolment experience are not yet published.</p><Link className="button" href="/">Return home ↗</Link></main>}

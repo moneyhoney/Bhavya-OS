@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function KnowledgePage(){return <main className="shell simple-page"><p className="eyebrow">Knowledge</p><h1>Knowledge shared with care.</h1><p>The future knowledge space will support responsible learning, research and access. No library catalogue or institutional claims are being fabricated in this foundation milestone.</p><Link className="button" href="/">Return home ↗</Link></main>}

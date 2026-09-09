@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function LabsPage(){return <main className="shell simple-page"><p className="eyebrow">Physical AI Labs</p><h1>Practical access for practical learning.</h1><p>Physical AI Labs are part of Bhavya’s product vision. Locations, equipment, schedules and access workflows will be shared only after they are established and approved.</p><Link className="button" href="/">Return home ↗</Link></main>}

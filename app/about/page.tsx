@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function AboutPage(){return <main className="shell simple-page"><p className="eyebrow">About Bhavya</p><h1>Building institutions that endure.</h1><p>Bhavya Foundation exists to build institutions that strengthen nature, knowledge and heritage. This website is the public entry point to that work.</p><Link className="button" href="/">Return home ↗</Link></main>}

@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function MissionsPage(){return <main className="shell simple-page"><p className="eyebrow">Our missions</p><h1>Four permanent responsibilities.</h1><p>Bhavya’s work belongs to four enduring missions: Forest, Knowledge, Heritage and Community. Programme details will be published only when approved source material is available.</p><Link className="button" href="/">Return home ↗</Link></main>}
