@@ -114,7 +114,7 @@ Current public routes:
 - `/labs`
 - `/knowledge`
 
-The homepage is static-first, mobile-first, low-bandwidth-aware, and uses the authoritative logo. Unpublished learning, lab, knowledge, programme, and impact facts are represented as transparent informational states rather than fabricated data.
+The homepage is static-first, mobile-first, low-bandwidth-aware, and uses the authoritative logo. The `/learning` route now presents a proposed, reviewable Foundation learning architecture and six representative module previews; it does not claim published curriculum. Unpublished lab, knowledge, programme, and impact facts remain transparent informational states rather than fabricated data.
 
 ## Current application architecture
 
