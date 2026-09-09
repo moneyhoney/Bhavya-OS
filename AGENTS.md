@@ -47,6 +47,12 @@ Use the Interpretable Context Methodology as an architectural reference:
 - human review gates;
 - stable reference material separated from working artifacts.
 
+## Skill routing
+- UI, responsive, motion, imagery, or browser visual review: load `skills/bhavya-ui/SKILL.md`.
+- Learning, curriculum, experiments, or education UX: load `skills/bhavya-learning/SKILL.md`.
+- External sources, assets, licenses, provenance, or Foundation claims: load `skills/bhavya-source-integrity/SKILL.md`.
+- Skills are small work instructions; they do not override authoritative Foundation documents or human review.
+
 ## Before coding
 1. Inspect the repository and Git status.
 2. Read CONTEXT.md and REFERENCE.md.
