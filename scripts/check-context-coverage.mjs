@@ -1,4 +1,4 @@
-import { readdir } from "node:fs/promises";
+import { access, readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,7 +20,7 @@ const ownedDirectories = await walk(root);
 const missing = [];
 for (const directory of ownedDirectories) {
   try {
-    await readdir(join(directory, "CONTEXT.md"));
+    await access(join(directory, "CONTEXT.md"));
   } catch {
     missing.push(relative(root, directory));
   }
