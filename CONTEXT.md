@@ -126,7 +126,11 @@ The homepage is static-first, mobile-first, low-bandwidth-aware, and uses the au
 
 ## Deployment architecture
 
-`.github/workflows/ci-pages.yml` is the intended remote execution path. On GitHub it installs with the lockfile, runs typecheck/lint/tests, creates the static export, uploads the Pages artifact, and deploys from `main`. The repository has not yet been connected to a GitHub remote in this environment.
+`.github/workflows/ci-pages.yml` is the remote execution path. On GitHub it installs with the lockfile, runs typecheck/lint/tests, creates the static export, uploads the Pages artifact, and deploys from `main`. The public repository is `moneyhoney/Bhavya-OS`; the verified Pages URL is `https://moneyhoney.github.io/Bhavya-OS/`.
+
+## Recursive context coverage
+
+Project-owned architectural directories have local context contracts: `app/` and its routes, `public/`, `references/` and source material, `.github/`, `docs/`, and `stages/`. Generated `.next/`, dependency `node_modules/`, and `.git/` are intentionally excluded.
 
 ## Unknowns
 
