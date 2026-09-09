@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLearningModule, learningModules } from "../data";
+import ModuleCheck from "./ModuleCheck";
 
 export function generateStaticParams() {
   return learningModules.map(({ slug }) => ({ module: slug }));
@@ -13,11 +14,11 @@ export default function LearningModulePage({ params }: { params: { module: strin
   return (
     <main className="learning-page">
       <header className="learning-header shell">
-        <Link href="/learning" className="back-link">â† Learning path</Link>
-        <span className="learning-status">Proposed Â· Foundation review required</span>
+        <Link href="/learning" className="back-link">← Learning path</Link>
+        <span className="learning-status">Proposed · Foundation review required</span>
       </header>
       <article className="module-detail shell">
-        <p className="eyebrow">Module {learningModule.number} Â· Foundation path</p>
+        <p className="eyebrow">Module {learningModule.number} · Foundation path</p>
         <h1>{learningModule.title}</h1>
         <p className="module-lede">{learningModule.objective}</p>
         <div className="module-detail-grid">
@@ -26,10 +27,9 @@ export default function LearningModulePage({ params }: { params: { module: strin
           <section><p className="eyebrow">Reflect</p><h2>What did you learn?</h2><p>{learningModule.evidence}</p></section>
         </div>
         <div className="module-concepts"><span>Concepts</span>{learningModule.concepts.map((concept) => <span key={concept}>{concept}</span>)}</div>
+        <ModuleCheck slug={learningModule.slug} />
         <p className="module-boundary">This is an original proposed learning outline. It contains no Foundation impact claims and is not published curriculum.</p>
       </article>
     </main>
   );
 }
-
-
