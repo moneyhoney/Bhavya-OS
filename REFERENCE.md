@@ -1,4 +1,4 @@
-# Bhavya Foundation — REFERENCE.md
+# Bhavya Foundation â€” REFERENCE.md
 
 ## Purpose
 
@@ -96,3 +96,23 @@ When a fact is not supported by the authoritative sources:
 ## Rule for AI-generated content
 
 AI may assist with drafts, explanations, exercises, and content production, but unreviewed AI output must not silently become authoritative Foundation policy or official curriculum.
+
+## Agent context architecture
+
+This repository uses a simple MAP → ROOMS → TOOLS model:
+
+- `AGENTS.md` is the concise repository map and execution baseline.
+- Root `CONTEXT.md` and scoped `CONTEXT.md` files are rooms containing current product/workspace state.
+- `REFERENCE.md` and `references/` contain stable background and authoritative source routing.
+- `skills/*/SKILL.md` are selective specialist procedures loaded only when a task matches.
+- Stage folders and task-local files are inspectable working artifacts, not permanent global instructions.
+
+The design follows ICM principles: one stage/one responsibility, scoped context, plain-text handoffs, stable references separated from work, and human review at authority boundaries. It also follows the filesystem skill pattern: a concise skill description routes an agent, while detailed instructions load only when relevant. These are architectural principles, not copied upstream files.
+
+External agent-pattern references researched for this repository:
+- [Interpretable Context Methodology](https://arxiv.org/abs/2603.16021) — filesystem structure as agentic architecture and explicit context layers.
+- [AGENTS.md canonical guide](https://github.com/zznabil/agents-md) — concise repository-level map with deeper support documents.
+- [Anthropic Skills documentation](https://code.claude.com/docs/en/slash-commands) — selective filesystem `SKILL.md` loading and progressive disclosure.
+- [VS Code custom instructions](https://github.com/microsoft/vscode-docs/blob/main/docs/agent-customization/custom-instructions.md) — repository and nested scope discovery.
+
+Research changed this implementation by keeping `AGENTS.md` map-sized, routing product detail into existing rooms, retaining skills as selective procedures, and adding a deterministic `pnpm routing:check` rather than relying on agent memory or a large instruction file.

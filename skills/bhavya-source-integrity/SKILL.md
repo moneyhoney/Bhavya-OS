@@ -1,3 +1,8 @@
+---
+name: bhavya-source-integrity
+description: Bhavya source-integrity workflow for Foundation facts, external research, assets, licensing, provenance, and attribution; use when source boundaries matter.
+---
+
 # Bhavya Source Integrity
 
 ## Purpose

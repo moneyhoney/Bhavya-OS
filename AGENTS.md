@@ -1,79 +1,36 @@
 # Bhavya Foundation — AGENTS.md
 
-## Purpose
-You are an autonomous coding agent working on the Bhavya Foundation digital platform.
+## Identity
 
-The first product priority is a free AI education ecosystem for students in rural Himachal Pradesh:
-1. a public Foundation website,
-2. a free AI learning platform,
-3. practical learning and experimentation,
-4. physical AI Labs for students who do not have computers.
+Bhavya Foundation is building a free AI-education ecosystem for students in rural Himachal Pradesh. This repository contains its public website and the first learner-facing product foundations.
 
-## Source-of-truth rules
-- The Foundation's approved governance documents are authoritative for institutional governance.
-- The Foundation logo is the authoritative brand asset supplied for this workspace.
-- Other reference/mockup images are visual references only.
-- Data shown in reference images is dummy/sample data and must never be treated as real Foundation data.
-- Do not invent Foundation facts, statistics, locations, policies, course content, impact numbers, or legal requirements.
-- If a requirement is unknown, record it as an assumption or open question.
+## This file is the map
 
-## Product priorities
-Build in this order unless an approved product decision changes it:
-1. Public website
-2. Learning platform foundation
-3. Real Foundation AI curriculum
-4. Student accounts and progress
-5. Practical experiments/projects
-6. Physical AI Lab integration
-7. Expansion from Foundation to expert-level curriculum
+Start here, then load only the room, references, and skills relevant to the task:
 
-## Engineering principles
-- Prefer a simple, maintainable architecture.
-- Keep domain logic separate from UI.
-- Keep AI-provider integrations behind replaceable boundaries.
-- Validate data at system boundaries.
-- Never commit secrets or sensitive student data.
-- Design for minors and safeguarding from the beginning.
-- Use automated tests and validate changes before declaring completion.
-- Do not overbuild hypothetical features.
-- Preserve existing work; inspect the repository before changing it.
+| Task | Read first | Load skills |
+|---|---|---|
+| Public website | `app/CONTEXT.md` | `bhavya-ui`, `bhavya-source-integrity` |
+| Learning product | `app/learning/CONTEXT.md` | `bhavya-learning`, `bhavya-ui` |
+| Curriculum/content | `curriculum/CONTEXT.md` | `bhavya-learning`, `bhavya-source-integrity` |
+| Foundation/governance | `governance/CONTEXT.md` | `bhavya-source-integrity` |
+| External research/assets | Relevant room context | `bhavya-source-integrity` |
+| Staged workflow | `stages/CONTEXT.md` and the active stage | Relevant room skills |
 
-## ICM principles
-Use the Interpretable Context Methodology as an architectural reference:
-- one stage, one responsibility;
-- scoped context;
-- plain-text interfaces where practical;
-- inspectable intermediate artifacts;
-- human review gates;
-- stable reference material separated from working artifacts.
+`CONTEXT.md` files are rooms. `REFERENCE.md` and `references/` are stable sources. `skills/*/SKILL.md` files are selective specialist playbooks. Task-specific working artifacts belong in the relevant stage or room, not in stable references.
 
-## Skill routing
-- UI, responsive, motion, imagery, or browser visual review: load `skills/bhavya-ui/SKILL.md`.
-- Learning, curriculum, experiments, or education UX: load `skills/bhavya-learning/SKILL.md`.
-- External sources, assets, licenses, provenance, or Foundation claims: load `skills/bhavya-source-integrity/SKILL.md`.
-- Skills are small work instructions; they do not override authoritative Foundation documents or human review.
+## Source boundary
 
-## Before coding
-1. Inspect the repository and Git status.
-2. Read CONTEXT.md and REFERENCE.md.
-3. Locate the relevant product/domain context.
-4. Understand existing implementation before replacing anything.
-5. Identify assumptions and unresolved requirements.
+Authoritative Foundation documents outrank product documents, external research, and visual references. The supplied logo is authoritative. Reference-image data is dummy data. Never invent Foundation facts, policy, legal requirements, locations, programmes, partnerships, statistics, impact, student data, or lab details. Original generic educational content is allowed, but it is not Foundation-approved curriculum until reviewed.
 
-## Before completion
-Run applicable:
-- typecheck
-- lint
-- tests
-- build
+## Execution
 
-Then inspect the diff and Git status.
+A task request means execute: inspect reality, research when required, implement working behavior, and verify the actual application. Do not substitute plans, proposals, schemas, placeholders, or documentation for implementation. Normal research, refactoring, testing, browser QA, and dependency evaluation are autonomous. Human review is required only for genuine Foundation authority, governance, safeguarding, legal, or publication decisions.
 
-## Documentation
-Important architectural decisions belong in docs/decisions/.
-Update relevant context/documentation when architecture changes.
+## Verification
 
-## Safety
-Do not expose or fabricate personal information.
-Do not publish student/minor information without appropriate authorization and safeguarding controls.
-Do not treat AI output as authoritative Foundation policy or curriculum without review.
+Use the repository's existing stack and preserve static GitHub Pages compatibility. Run applicable context/routing checks, typecheck, lint, tests, and build; inspect the diff and working tree. For user-facing changes, verify the actual application and distinguish verified results from unverified checks.
+
+## Map maintenance
+
+Update the narrowest relevant `CONTEXT.md` when implementation reality changes. Keep this file concise. Run `pnpm routing:check` after routing changes; it verifies required rooms, references, skills, and the global-map boundary.

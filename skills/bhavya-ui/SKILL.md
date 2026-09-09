@@ -1,3 +1,8 @@
+---
+name: bhavya-ui
+description: Bhavya UI workflow for public website and learning interfaces; use for visual, responsive, motion, imagery, accessibility, and browser review tasks.
+---
+
 # Bhavya UI
 
 ## Purpose

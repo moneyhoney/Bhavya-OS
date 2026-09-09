@@ -1,3 +1,8 @@
+---
+name: bhavya-learning
+description: Bhavya learning workflow for curriculum, lesson, exercise, experiment, and education UX work; use when designing or changing learner experiences.
+---
+
 # Bhavya Learning
 
 ## Purpose
@@ -11,7 +16,7 @@ Approved Foundation sources, current curriculum context, learner constraints, ob
 
 ## Workflow
 1. State the learner objective and prior knowledge.
-2. Structure the experience as Understand → Observe → Try → Experiment → Build → Reflect.
+2. Structure the experience as Understand â†’ Observe â†’ Try â†’ Experiment â†’ Build â†’ Reflect.
 3. Prefer durable concepts: data, instructions, models, evaluation, verification, bias, and responsible use.
 4. Make proposed status explicit and avoid fabricated facts, student data, or course claims.
 5. Add a low-bandwidth, no-account path and an appropriate human review gate.

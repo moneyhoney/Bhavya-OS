@@ -1,19 +1,35 @@
-# App Context
+# Public Website Context
 
 ## Purpose
-`app/` contains the public Next.js App Router application.
 
-## Belongs here
-Routes, root layout, route metadata, and shared application styles.
+`app/` is the public Bhavya Foundation website: the institutional front door and navigation layer for future learning, labs, knowledge, and community work.
 
-## Does not belong here
-Stable governance references, generated output, secrets, database code, or future backend integrations.
+## Audience and quality bar
 
-## Inputs and outputs
-Inputs are approved product/brand references. Outputs are static public pages and navigation.
+Communicate clearly to general visitors and prospective learners, including people using phones and constrained connections. The experience should be calm, evidence-based, accessible, premium, and truthful.
 
-## Neighbors
-`public/` supplies assets; `references/` supplies source authority; `.github/` validates and deploys the app.
+## Current state
 
-## Before modifying
-Read the root `AGENTS.md`, root `CONTEXT.md`, `REFERENCE.md`, and `PRD.md`.
+- **Implemented:** static Next.js App Router routes for `/`, `/about`, `/missions`, `/learning`, `/labs`, and `/knowledge`; shared responsive styles; authoritative logo usage; GitHub Pages static export.
+- **Partial:** `/learning` now contains interactive proposed modules, but accounts, server persistence, official curriculum, and lab integration do not exist.
+- **Placeholder / truthful empty state:** operational lab, programme, impact, partner, and student information not supported by Foundation sources.
+- **Not started:** backend services, authenticated public submissions, analytics, and production data integrations.
+
+## Relevant files
+
+- `app/page.tsx` — public homepage.
+- `app/learning/` — learner-facing room; read its context before learning work.
+- `app/globals.css` — shared visual system and responsive behavior.
+- `public/logo.png` — authoritative Foundation logo.
+- `references/source-material/foundation-constitution/` — brand and institutional authority.
+
+## Workflow and validation
+
+Inspect current routes before changing them. Use semantic HTML, visible focus, keyboard operation, reduced motion, touch-sized controls, meaningful alt text, and lightweight progressive enhancement. Run `pnpm routing:check`, `pnpm context:check`, typecheck, lint, tests, and the appropriate browser/production checks.
+
+## Routed skills and references
+
+- `skills/bhavya-ui/SKILL.md`
+- `skills/bhavya-source-integrity/SKILL.md`
+- `REFERENCE.md`
+- `references/source-material/foundation-constitution/`
