@@ -1,5 +1,5 @@
-.next/
 node_modules/
-*.tsbuildinfo
-.env*
-!.env.example
+.next/
+out/
+.qa-chrome*/
+tsconfig.tsbuildinfo

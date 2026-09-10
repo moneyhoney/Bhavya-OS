@@ -1,0 +1,320 @@
+/**
+ * Lightweight Windows Chrome smoke test for the learner journey.
+ *
+ * This intentionally uses Chrome DevTools Protocol and Node's built-in
+ * WebSocket API so static-export compatibility is not coupled to a test
+ * framework or a second browser automation dependency.
+ */
+
+const baseUrl = process.env.BHAVYA_QA_URL ?? "http://localhost:3001";
+const cdpPort = process.env.BHAVYA_QA_CDP ?? "9223";
+const pages = await (await fetch(`http://127.0.0.1:${cdpPort}/json`)).json();
+const target = pages.find((page) => page.type === "page");
+
+if (!target) throw new Error(`No Chrome page target found on port ${cdpPort}`);
+
+const socket = new WebSocket(target.webSocketDebuggerUrl);
+await new Promise((resolve, reject) => {
+  socket.addEventListener("open", resolve, { once: true });
+  socket.addEventListener("error", reject, { once: true });
+});
+
+let messageId = 0;
+const pending = new Map();
+const runtimeEvents = [];
+
+socket.addEventListener("message", (event) => {
+  const message = JSON.parse(event.data);
+  if (message.method === "Runtime.exceptionThrown") {
+    runtimeEvents.push({ type: "exception", text: message.params.exceptionDetails?.text ?? "runtime exception" });
+  }
+  if (message.method === "Log.entryAdded" && ["error", "warning"].includes(message.params.entry.level)) {
+    runtimeEvents.push({ type: message.params.entry.level, text: message.params.entry.text });
+  }
+  if (message.id && pending.has(message.id)) {
+    pending.get(message.id)(message);
+    pending.delete(message.id);
+  }
+});
+
+function send(method, params = {}) {
+  return new Promise((resolve, reject) => {
+    const id = ++messageId;
+    pending.set(id, resolve);
+    socket.send(JSON.stringify({ id, method, params }));
+    setTimeout(() => {
+      if (pending.has(id)) {
+        pending.delete(id);
+        reject(new Error(`Chrome CDP timeout: ${method}`));
+      }
+    }, 10000);
+  });
+}
+
+const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+async function waitFor(selector, timeout = 15000) {
+  const started = Date.now();
+  while (Date.now() - started < timeout) {
+    if (await evaluate(`Boolean(document.querySelector(${JSON.stringify(selector)}))`)) return;
+    await wait(250);
+  }
+  throw new Error(`Browser element did not become ready: ${selector}`);
+}
+
+async function waitForExpression(expression, timeout = 15000) {
+  const started = Date.now();
+  while (Date.now() - started < timeout) {
+    if (await evaluate(expression)) return;
+    await wait(250);
+  }
+  throw new Error(`Browser condition did not become ready: ${expression}`);
+}
+
+async function evaluate(expression) {
+  const response = await send("Runtime.evaluate", {
+    expression,
+    awaitPromise: true,
+    returnByValue: true,
+  });
+  if (response.result?.exceptionDetails) {
+    throw new Error(response.result.exceptionDetails.text ?? "Browser evaluation failed");
+  }
+  return response.result?.result?.value;
+}
+
+async function navigate(path) {
+  await send("Page.navigate", { url: `${baseUrl}${path}` });
+  await waitFor(path === "/learning/" ? ".module-grid" : ".lesson-lab");
+}
+
+async function click(selector) {
+  return evaluate(`(() => {
+    const element = document.querySelector(${JSON.stringify(selector)});
+    if (!element) return false;
+    element.click();
+    return true;
+  })()`);
+}
+
+async function clearAndReload(path) {
+  await navigate(path);
+  await evaluate("localStorage.clear(); location.reload()");
+  await waitFor(".lesson-lab");
+  await waitFor('[data-learning-hydrated="true"]');
+}
+
+async function state() {
+  return evaluate(`({
+    path: location.pathname,
+    completion: document.querySelector('.lesson-completion strong')?.textContent?.trim() ?? '',
+    feedback: document.querySelector('.activity-feedback')?.textContent?.trim() ?? '',
+    completionDisabled: document.querySelector('.lesson-completion button')?.disabled ?? true,
+  })`);
+}
+
+async function storage() {
+  return evaluate(`({
+    lesson: localStorage.getItem('bhavya-lesson:' + location.pathname.split('/')[2]),
+    activity: localStorage.getItem('bhavya-activity:' + location.pathname.split('/')[2]),
+  })`);
+}
+
+async function completeLesson() {
+  await evaluate(`(() => { const field = document.querySelector('#lesson-reflection'); if (!field) throw new Error('Reflection field is missing'); const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set; field.focus(); setter.call(field, 'I would test one more example and compare its evidence.'); field.dispatchEvent(new Event('input', { bubbles: true })); field.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
+  await wait(200);
+  await click(".lesson-completion button");
+  await wait(120);
+  return { state: await state(), storage: await storage() };
+}
+
+await send("Runtime.enable");
+await send("Page.enable");
+await send("Log.enable");
+
+const report = {
+  browser: "Chrome via Windows DevTools Protocol",
+  home: {},
+  interactions: {},
+  responsive: {},
+  keyboard: {},
+};
+
+await navigate("/learning/");
+report.home = await evaluate(`({
+  path: location.pathname,
+  heading: document.querySelector('h1')?.textContent?.trim() ?? '',
+  moduleCount: document.querySelectorAll('.module-card').length,
+  firstLessonVisible: Boolean(document.querySelector('a[href="/learning/what-is-a-computer/"]')),
+})`);
+
+await clearAndReload("/learning/what-is-a-computer/");
+report.interactions.sequence = { initial: await state() };
+await click(".lesson-completion button");
+report.interactions.sequence.beforeActivity = await state();
+await click(".activity-frame .button");
+await wait(80);
+report.interactions.sequence.wrong = await state();
+await click('.sequence-row:nth-child(2) button[aria-label*="up"]');
+await wait(80);
+await click('.sequence-row:nth-child(4) button[aria-label*="up"]');
+await wait(80);
+await click(".activity-frame .button");
+await wait(80);
+report.interactions.sequence.correct = await state();
+report.interactions.sequence.completed = await completeLesson();
+await navigate("/learning/");
+await waitForExpression("document.querySelectorAll('.module-card.is-complete').length === 1");
+report.progressBeforeRefresh = await evaluate(`({
+  heading: document.querySelector('.learning-progress h2')?.textContent?.trim() ?? '',
+  completeCards: document.querySelectorAll('.module-card.is-complete').length,
+})`);
+await evaluate("location.reload()");
+await waitForExpression("document.querySelectorAll('.module-card.is-complete').length === 1");
+report.progressAfterRefresh = await evaluate(`({
+  heading: document.querySelector('.learning-progress h2')?.textContent?.trim() ?? '',
+  completeCards: document.querySelectorAll('.module-card.is-complete').length,
+})`);
+await click('a[href="/learning/what-is-data/"]');
+await wait(700);
+report.nextLessonPath = await evaluate("location.pathname");
+
+const cases = [
+  {
+    name: "dataset",
+    path: "/learning/what-is-data/",
+    wrong: async () => state(),
+    act: async () => {
+      await click(".filter-row button:nth-child(2)");
+      await wait(100);
+    },
+  },
+  {
+    name: "decision",
+    path: "/learning/algorithms-and-instructions/",
+    wrong: async () => {
+      await click(".choice-grid button:nth-child(2)");
+      await wait(80);
+      return state();
+    },
+    act: async () => {
+      await click(".choice-grid button:nth-child(1)");
+      await wait(80);
+    },
+  },
+  {
+    name: "classification",
+    path: "/learning/what-is-ai/",
+    wrong: async () => {
+      await evaluate(`(() => {
+        document.querySelectorAll('.classification-list select').forEach((element) => {
+          const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;
+          setter.call(element, 'ai');
+          element.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+      })()`);
+      await wait(120);
+      await click(".activity-frame .button");
+      await wait(80);
+      return state();
+    },
+    act: async () => {
+      await evaluate(`(() => {
+        const values = ['data', 'instructions', 'ai', 'not-ai'];
+        document.querySelectorAll('.classification-list select').forEach((element, index) => {
+          const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;
+          setter.call(element, values[index]);
+          element.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+      })()`);
+      await wait(120);
+      await click(".activity-frame .button");
+      await wait(80);
+    },
+  },
+  {
+    name: "model",
+    path: "/learning/machine-learning-by-example/",
+    wrong: async () => state(),
+    act: async () => {
+      await evaluate(`(() => {
+        const element = document.querySelector('#threshold');
+        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+        setter.call(element, '70');
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+      })()`);
+      await wait(120);
+    },
+  },
+  {
+    name: "verification",
+    path: "/learning/classification-and-patterns/",
+    wrong: async () => {
+      await evaluate(`(() => {
+        document.querySelectorAll('.verification-list > div').forEach((group) => group.querySelectorAll('button')[0].click());
+      })()`);
+      await wait(120);
+      await click(".activity-frame .button");
+      await wait(80);
+      return state();
+    },
+    act: async () => {
+      await evaluate(`(() => {
+        const groups = document.querySelectorAll('.verification-list > div');
+        [1, 0, 1].forEach((buttonIndex, index) => groups[index].querySelectorAll('button')[buttonIndex].click());
+      })()`);
+      await wait(80);
+      await click(".activity-frame .button");
+      await wait(80);
+    },
+  },
+];
+
+for (const lesson of cases) {
+  await clearAndReload(lesson.path);
+  const initial = await state();
+  const wrong = await lesson.wrong();
+  await lesson.act();
+  const after = await state();
+  const completed = await completeLesson();
+  report.interactions[lesson.name] = { initial, wrong, after, completed };
+}
+
+await clearAndReload("/learning/what-is-data/");
+await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+report.responsive.mobile = await evaluate(`({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth, overflow: document.documentElement.scrollWidth > innerWidth })`);
+await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+report.responsive.desktop = await evaluate(`({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth, overflow: document.documentElement.scrollWidth > innerWidth })`);
+await send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
+report.responsive.reducedMotion = await evaluate(`({ matches: matchMedia('(prefers-reduced-motion: reduce)').matches })`);
+await send("Emulation.setEmulatedMedia", { features: [] });
+await send("Emulation.clearDeviceMetricsOverride");
+
+await clearAndReload("/learning/what-is-a-computer/");
+await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
+await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
+report.keyboard.firstTab = await evaluate(`({
+  tag: document.activeElement?.tagName ?? '',
+  name: document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent?.trim()?.slice(0, 60) ?? '',
+})`);
+for (let index = 0; index < 9; index += 1) {
+  await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
+  await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
+}
+report.keyboard.activityControl = await evaluate(`({
+  tag: document.activeElement?.tagName ?? '',
+  text: document.activeElement?.textContent?.trim() ?? '',
+})`);
+await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
+await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
+await wait(120);
+report.keyboard.afterEnter = await state();
+
+report.runtime = {
+  exceptions: runtimeEvents.filter((event) => event.type === "exception"),
+  errors: runtimeEvents.filter((event) => event.type !== "exception"),
+};
+
+console.log(JSON.stringify(report, null, 2));
+socket.close();
