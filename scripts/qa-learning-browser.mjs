@@ -206,6 +206,8 @@ await click(".diagnostic-card form > .button");
 await click(".diagnostic-feedback:not(.hint) .button");
 await wait(80);
 report.diagnostic.result = await evaluate(`({ result: Boolean(document.querySelector('.diagnostic-result')), recommendation: document.querySelector('.diagnostic-recommendation h2')?.textContent?.trim() ?? '', saved: Boolean(localStorage.getItem('bhavya-diagnostic')) })`);
+await navigate("/learning/");
+report.diagnostic.pathChanged = await evaluate(`({ nextAction: document.querySelector('.desk-plan h3')?.textContent?.trim() ?? '', weakSlugs: JSON.parse(localStorage.getItem('bhavya-diagnostic') ?? '{}').weakSlugs ?? [] })`);
 
 await clearAndReload("/learning/what-is-a-computer/");
 report.interactions.sequence = { initial: await state() };

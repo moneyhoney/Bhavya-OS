@@ -186,6 +186,10 @@ export function recommendedModule(): LearningModule {
   const now = Date.now();
   const due = learningModules.find((module) => Number(window.localStorage.getItem(reviewKey(module.slug)) ?? 0) <= now && Number(window.localStorage.getItem(reviewKey(module.slug)) ?? 0) > 0);
   if (due) return due;
+  let diagnostic: { weakSlugs?: string[]; strongSlugs?: string[] } = {};
+  try { diagnostic = JSON.parse(window.localStorage.getItem(diagnosticKey) ?? "{}"); } catch { diagnostic = {}; }
+  const targeted = learningModules.find((module) => diagnostic.weakSlugs?.includes(module.slug));
+  if (targeted) return targeted;
   const weak = learningModules
     .filter((module) => window.localStorage.getItem(coachCompleteKey(module.slug)) !== "complete")
     .sort((a, b) => Number(window.localStorage.getItem(coachMissKey(b.slug)) ?? 0) - Number(window.localStorage.getItem(coachMissKey(a.slug)) ?? 0))[0];
