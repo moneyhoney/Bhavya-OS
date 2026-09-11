@@ -50,6 +50,7 @@ Read `curriculum/CONTEXT.md` before changing educational content. Use `skills/bh
 ## Competency additions
 
 - `CapabilityPanel.tsx` surfaces concrete capability statements from local evidence without claiming validated mastery.
+- The capability panel also exposes a progressive-disclosure evidence view for all six concepts, showing the actual activity, application, recall, retry, and hint signals behind each learner-friendly status and routing review/practice actions to the relevant next step.
 - `Diagnostic.tsx` and `diagnostic/page.tsx` provide an optional four-question starting check with retryable feedback and targeted recommendation.
 - `ProjectMilestone.tsx` adds a guided evidence brief and transparent application rubric to the final classification lesson.
 - Project evidence is stored as a version-tolerant local record and is read consistently after refresh before the path recommends another project attempt.

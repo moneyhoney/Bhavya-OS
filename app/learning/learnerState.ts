@@ -105,6 +105,23 @@ export function capabilityStatements(): Array<{ slug: string; title: string; sta
   });
 }
 
+export function capabilityEvidenceLine(signal: CapabilitySignal): string {
+  const evidence: string[] = [];
+  if (signal.demonstrations > 0) evidence.push(`${signal.demonstrations} demonstrated ${signal.demonstrations === 1 ? "activity" : "activities"}`);
+  if (signal.applications > 0) evidence.push(`${signal.applications} applied ${signal.applications === 1 ? "task" : "tasks"}`);
+  if (signal.recalls > 0) evidence.push(`${signal.recalls} successful ${signal.recalls === 1 ? "recall" : "recalls"}`);
+  if (signal.successfulRetries > 0) evidence.push(`${signal.successfulRetries} successful ${signal.successfulRetries === 1 ? "retry" : "retries"}`);
+  if (signal.hints > 0) evidence.push(`${signal.hints} ${signal.hints === 1 ? "hint" : "hints"} used`);
+  if (evidence.length === 0 && signal.encountered > 0) return "Encountered; no completed evidence yet";
+  return evidence.length > 0 ? evidence.join(" · ") : "No evidence yet";
+}
+
+export function isReviewDue(slug: string): boolean {
+  if (typeof window === "undefined") return false;
+  const dueAt = Number(window.localStorage.getItem(reviewKey(slug)) ?? 0);
+  return dueAt > 0 && dueAt <= Date.now();
+}
+
 export function weakCapabilitySlugs(): string[] {
   const state = readLearnerState();
   return Object.values(state.capabilities).filter((signal) => signal.lastEvidence === "hint" || signal.lastEvidence === "attempted").sort((a, b) => (b.hints + b.mistakes) - (a.hints + a.mistakes)).map((signal) => signal.slug);
@@ -230,6 +247,5 @@ export function learningDecision(): LearningDecision {
 
 export function dueReviewCount(): number {
   if (typeof window === "undefined") return 0;
-  const now = Date.now();
-  return learningModules.filter((module) => { const dueAt = Number(window.localStorage.getItem(reviewKey(module.slug)) ?? 0); return dueAt > 0 && dueAt <= now; }).length;
+  return learningModules.filter((module) => isReviewDue(module.slug)).length;
 }
