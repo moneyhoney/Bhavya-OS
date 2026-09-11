@@ -112,7 +112,8 @@ async function fillText(selector, value) {
   await evaluate(`(() => {
     const field = document.querySelector(${JSON.stringify(selector)});
     if (!field) throw new Error('Field is missing: ' + ${JSON.stringify(selector)});
-    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set ?? Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+    const prototype = field instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const setter = Object.getOwnPropertyDescriptor(prototype, 'value').set;
     setter.call(field, ${JSON.stringify(value)});
     field.dispatchEvent(new Event('input', { bubbles: true }));
     field.dispatchEvent(new Event('change', { bubbles: true }));

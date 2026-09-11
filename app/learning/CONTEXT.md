@@ -37,6 +37,7 @@ Do not make six copies of a quiz. Match the interaction to the idea: sequence in
 - `[module]/page.tsx` — static module route shell.
 - `app/globals.css` — learning UI and mobile styles.
 - `scripts/qa-learning-browser.mjs` — repeatable Chrome DevTools Protocol smoke test for the learner journey; run against a local dev server with Chrome remote debugging on port `9223`.
+- `app/layout.tsx` — metadata icon path includes the GitHub Pages project base path during the production export.
 
 ## Workflow and validation
 
