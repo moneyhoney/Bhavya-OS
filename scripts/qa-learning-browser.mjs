@@ -22,6 +22,7 @@ await new Promise((resolve, reject) => {
 let messageId = 0;
 const pending = new Map();
 const runtimeEvents = [];
+const failedRequests = [];
 
 socket.addEventListener("message", (event) => {
   const message = JSON.parse(event.data);
@@ -30,6 +31,9 @@ socket.addEventListener("message", (event) => {
   }
   if (message.method === "Log.entryAdded" && ["error", "warning"].includes(message.params.entry.level)) {
     runtimeEvents.push({ type: message.params.entry.level, text: message.params.entry.text });
+  }
+  if (message.method === "Network.responseReceived" && message.params.response.status >= 400) {
+    failedRequests.push({ status: message.params.response.status, url: message.params.response.url });
   }
   if (message.id && pending.has(message.id)) {
     pending.get(message.id)(message);
@@ -115,8 +119,8 @@ async function state() {
 
 async function storage() {
   return evaluate(`({
-    lesson: localStorage.getItem('bhavya-lesson:' + location.pathname.split('/')[2]),
-    activity: localStorage.getItem('bhavya-activity:' + location.pathname.split('/')[2]),
+    lesson: localStorage.getItem('bhavya-lesson:' + location.pathname.split('/').filter(Boolean).at(-1)),
+    activity: localStorage.getItem('bhavya-activity:' + location.pathname.split('/').filter(Boolean).at(-1)),
   })`);
 }
 
@@ -131,6 +135,7 @@ async function completeLesson() {
 await send("Runtime.enable");
 await send("Page.enable");
 await send("Log.enable");
+await send("Network.enable");
 
 const report = {
   browser: "Chrome via Windows DevTools Protocol",
@@ -145,7 +150,7 @@ report.home = await evaluate(`({
   path: location.pathname,
   heading: document.querySelector('h1')?.textContent?.trim() ?? '',
   moduleCount: document.querySelectorAll('.module-card').length,
-  firstLessonVisible: Boolean(document.querySelector('a[href="/learning/what-is-a-computer/"]')),
+  firstLessonVisible: Boolean(document.querySelector('a[href*="/learning/what-is-a-computer/"]')),
 })`);
 
 await clearAndReload("/learning/what-is-a-computer/");
@@ -163,6 +168,10 @@ await click(".activity-frame .button");
 await wait(80);
 report.interactions.sequence.correct = await state();
 report.interactions.sequence.completed = await completeLesson();
+report.nextLessonHref = await evaluate("document.querySelector('.completion-actions a.button.light')?.getAttribute('href') ?? ''");
+await click('.completion-actions a.button.light');
+await wait(250);
+report.nextLessonPath = await evaluate("location.pathname");
 await navigate("/learning/");
 await waitForExpression("document.querySelectorAll('.module-card.is-complete').length === 1");
 report.progressBeforeRefresh = await evaluate(`({
@@ -177,7 +186,6 @@ report.progressAfterRefresh = await evaluate(`({
 })`);
 await click('a[href="/learning/what-is-data/"]');
 await wait(700);
-report.nextLessonPath = await evaluate("location.pathname");
 
 const cases = [
   {
@@ -315,6 +323,7 @@ report.runtime = {
   exceptions: runtimeEvents.filter((event) => event.type === "exception"),
   errors: runtimeEvents.filter((event) => event.type !== "exception"),
 };
+report.failedRequests = failedRequests;
 
 console.log(JSON.stringify(report, null, 2));
 socket.close();
