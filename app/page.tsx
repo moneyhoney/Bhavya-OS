@@ -43,7 +43,7 @@ export default function HomePage() {
     </section>
 
     <section className="learning-callout shell" aria-labelledby="learning-title">
-      <div className="learning-copy"><p className="eyebrow">The Bhavya learning path</p><h2 id="learning-title">AI is not a distant future. It is something you can learn to shape.</h2><p>A free learning ecosystem is being established for students, including learners who may not have a computer at home. Start on a phone. Continue at the right moment. Build with others.</p><Link className="button light" href="/learning">See the learning vision <span aria-hidden="true">↗</span></Link></div>
+      <div className="learning-copy"><p className="eyebrow">The Bhavya learning path</p><h2 id="learning-title">AI is not a distant future. It is something you can learn to shape.</h2><p>A free learning ecosystem is being established for students, including learners who may not have a computer at home. Start on a phone. Continue at the right moment. Build with others.</p><p className="learning-note">The proposed path needs no account to begin. Your progress stays on this device while you explore the first six lessons.</p><Link className="button light" href="/learning">Start the learning path <span aria-hidden="true">↗</span></Link></div>
       <div className="path-map" aria-label="Learning journey: understand, observe, try, experiment, build, reflect"><div className="path-line" /><span className="path-node node-1">Understand</span><span className="path-node node-2">Observe</span><span className="path-node node-3">Try</span><span className="path-node node-4">Experiment</span><span className="path-node node-5">Build</span><span className="path-node node-6">Reflect</span></div>
     </section>
 
