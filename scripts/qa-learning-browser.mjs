@@ -263,6 +263,12 @@ report.progressBeforeRefresh = await evaluate(`({
   heading: document.querySelector('.learning-progress h2')?.textContent?.trim() ?? '',
   completeCards: document.querySelectorAll('.module-card.is-complete').length,
 })`);
+await click('.capability-details summary');
+await waitForExpression("document.querySelector('.capability-details')?.open === true");
+report.capabilityAfterProgress = await evaluate(`({
+  firstStatus: document.querySelector('.capability-detail')?.textContent?.trim() ?? '',
+  firstEvidence: document.querySelector('.capability-item small')?.textContent?.trim() ?? ''
+})`);
 await evaluate("location.reload()");
 await waitForExpression("document.querySelectorAll('.module-card.is-complete').length === 1");
 report.progressAfterRefresh = await evaluate(`({
