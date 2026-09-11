@@ -196,8 +196,8 @@ export function recommendedModule(): LearningModule {
 }
 
 export function initialLearningDecision(): LearningDecision {
-  const module = learningModules[0];
-  return { kind: "advance", module, heading: module.title, description: `A focused checkpoint on ${module.skill.toLowerCase()}`, action: "Open lesson", href: `/learning/${module.slug}/` };
+  const firstModule = learningModules[0];
+  return { kind: "advance", module: firstModule, heading: firstModule.title, description: `A focused checkpoint on ${firstModule.skill.toLowerCase()}`, action: "Open lesson", href: `/learning/${firstModule.slug}/` };
 }
 
 export function learningDecision(): LearningDecision {
