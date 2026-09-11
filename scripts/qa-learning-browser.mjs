@@ -147,7 +147,7 @@ async function completeLesson() {
   await wait(200);
   await click(".lesson-completion button");
   await wait(120);
-  return { state: await state(), storage: await storage() };
+  return { state: await state(), storage: await storage(), project: hasProject ? await evaluate(`({ complete: Boolean(document.querySelector('.project-feedback.success')), feedback: document.querySelector('.project-feedback')?.textContent?.trim() ?? '' })`) : null };
 }
 
 await send("Runtime.enable");
@@ -187,7 +187,7 @@ report.coach.correct = await evaluate(`({ feedback: document.querySelector('.coa
 
 await clearAndReload("/learning/diagnostic/");
 report.diagnostic = { initial: await evaluate(`({ path: location.pathname, question: document.querySelector('.diagnostic-card h2')?.textContent?.trim() ?? '', questionNumber: document.querySelector('.learning-status')?.textContent?.trim() ?? '' })`) };
-await click(".diagnostic-options label:nth-child(2)");
+await click(".diagnostic-options label:nth-child(2) input");
 await click(".diagnostic-card form > .button");
 await wait(80);
 report.diagnostic.wrong = await evaluate(`({ feedback: document.querySelector('.diagnostic-feedback')?.textContent?.trim() ?? '', retryVisible: Boolean(document.querySelector('.diagnostic-feedback .button.light')) })`);
