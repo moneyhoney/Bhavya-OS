@@ -16,9 +16,13 @@ The intended product hierarchy is Learning Path → Level → Course → Module 
 
 - **Implemented:** `/learning` entry page, six module routes, six differentiated client-side interactions, explanatory feedback, activity-specific completion conditions, device-local resume state, a persisted learner reflection for each lesson, calculated module progress, and next-lesson navigation.
 - **Implemented:** `/learning/coach` provides an offline-first local coach checkpoint. It reads the learner's optional name, goal, available minutes, and usual device; selects a next or due topic; offers simple/practical/technical explanations; evaluates a written response against the concept; gives a targeted hint before explanation; records misses; and schedules a three-day recall checkpoint.
+- **Implemented:** local capability evidence records concepts encountered, attempts, hints/mistakes, recalls, applications, and demonstrations. The learning home surfaces concrete capability statements without claiming validated mastery.
+- **Implemented:** optional `/learning/diagnostic` samples four concepts, with retryable feedback and an own-words prompt. Its result stores weak/strong concept signals locally and recommends targeted practice or a next challenge.
+- **Implemented:** the final classification lesson includes a small evidence-brief project with an inspectable rubric. The project must pass before that lesson can be completed and its application signal is recorded locally.
+- **Implemented:** `coachPolicy.ts` defines a provider-agnostic evaluator boundary. The current implementation is deterministic and local; it does not claim to be an AI model.
 - **Partial:** progress, coach signals, and review dates are device-local only; they are not an account, synchronised record, official assessment, analytics system, or production AI model.
 - **Proposed:** all current module content and progression; Foundation review is required before publication as official curriculum.
-- **Not started:** accounts, server persistence, mentor workflows, AI Labs, project submission, moderated sharing, provider-backed AI assistance, and offline packaging. Capstone/project evaluation is still future work.
+- **Not started:** accounts, server persistence, mentor workflows, AI Labs, moderated sharing, provider-backed AI assistance, and offline packaging. The current project milestone is a local guided practice brief, not cloud submission, human review, or a capstone system.
 
 ## Interaction expectations
 
@@ -42,6 +46,14 @@ Do not make six copies of a quiz. Match the interaction to the idea: sequence in
 ## Workflow and validation
 
 Read `curriculum/CONTEXT.md` before changing educational content. Use `skills/bhavya-learning/SKILL.md` and `skills/bhavya-ui/SKILL.md`. Keep generic educational explanations distinct from Foundation claims. Validate wrong answers, feedback, completion, refresh/resume, navigation, keyboard use, reduced motion, mobile layout, and static export behavior.
+
+## Competency additions
+
+- `CapabilityPanel.tsx` surfaces concrete capability statements from local evidence without claiming validated mastery.
+- `Diagnostic.tsx` and `diagnostic/page.tsx` provide an optional four-question starting check with retryable feedback and targeted recommendation.
+- `ProjectMilestone.tsx` adds a guided evidence brief and transparent application rubric to the final classification lesson.
+- `coachPolicy.ts` defines a deterministic evaluator behind a future tutor/coach provider boundary.
+- The current project milestone is a local guided practice brief, not cloud submission, human review, or an official Foundation assignment.
 
 ## Routed references
 

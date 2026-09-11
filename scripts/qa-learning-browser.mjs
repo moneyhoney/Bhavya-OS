@@ -89,7 +89,7 @@ async function evaluate(expression) {
 
 async function navigate(path) {
   await send("Page.navigate", { url: `${baseUrl}${path}` });
-  await waitFor(path === "/learning/" ? ".module-grid" : path === "/learning/coach/" ? ".coach-session" : ".lesson-lab");
+  await waitFor(path === "/learning/" ? ".module-grid" : path === "/learning/coach/" ? ".coach-session" : path === "/learning/diagnostic/" ? ".diagnostic-card" : ".lesson-lab");
 }
 
 async function click(selector) {
@@ -104,8 +104,8 @@ async function click(selector) {
 async function clearAndReload(path) {
   await navigate(path);
   await evaluate("localStorage.clear(); location.reload()");
-  await waitFor(path === "/learning/coach/" ? ".coach-session" : ".lesson-lab");
-  if (path !== "/learning/coach/") await waitFor('[data-learning-hydrated="true"]');
+  await waitFor(path === "/learning/coach/" ? ".coach-session" : path === "/learning/diagnostic/" ? ".diagnostic-card" : ".lesson-lab");
+  if (path !== "/learning/coach/" && path !== "/learning/diagnostic/") await waitFor('[data-learning-hydrated="true"]');
 }
 
 async function fillText(selector, value) {
@@ -137,6 +137,12 @@ async function storage() {
 }
 
 async function completeLesson() {
+  const hasProject = await evaluate("Boolean(document.querySelector('#project-draft'))");
+  if (hasProject) {
+    await fillText('#project-draft', 'The claim is a forecast. I would inspect the evidence, source, and date. If uncertain, I would check before trust.');
+    await click('.project-milestone .button');
+    await waitForExpression("Boolean(document.querySelector('.project-feedback.success'))");
+  }
   await evaluate(`(() => { const field = document.querySelector('#lesson-reflection'); if (!field) throw new Error('Reflection field is missing'); const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set; field.focus(); setter.call(field, 'I would test one more example and compare its evidence.'); field.dispatchEvent(new Event('input', { bubbles: true })); field.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   await wait(200);
   await click(".lesson-completion button");
@@ -178,6 +184,28 @@ await fillText("#coach-answer", "The input is received, instructions are followe
 await click(".coach-answer .button");
 await wait(100);
 report.coach.correct = await evaluate(`({ feedback: document.querySelector('.coach-feedback')?.textContent?.trim() ?? '', reviewSaved: Boolean(localStorage.getItem('bhavya-review:what-is-a-computer')), coachComplete: localStorage.getItem('bhavya-coach:what-is-a-computer') })`);
+
+await clearAndReload("/learning/diagnostic/");
+report.diagnostic = { initial: await evaluate(`({ path: location.pathname, question: document.querySelector('.diagnostic-card h2')?.textContent?.trim() ?? '', questionNumber: document.querySelector('.learning-status')?.textContent?.trim() ?? '' })`) };
+await click(".diagnostic-options label:nth-child(2)");
+await click(".diagnostic-card form > .button");
+await wait(80);
+report.diagnostic.wrong = await evaluate(`({ feedback: document.querySelector('.diagnostic-feedback')?.textContent?.trim() ?? '', retryVisible: Boolean(document.querySelector('.diagnostic-feedback .button.light')) })`);
+await click(".diagnostic-feedback .button.light");
+await click(".diagnostic-options label:nth-child(1)");
+await click(".diagnostic-card form > .button");
+await click(".diagnostic-feedback:not(.hint) .button");
+await click(".diagnostic-options label:nth-child(1)");
+await click(".diagnostic-card form > .button");
+await click(".diagnostic-feedback:not(.hint) .button");
+await click(".diagnostic-options label:nth-child(1)");
+await click(".diagnostic-card form > .button");
+await click(".diagnostic-feedback:not(.hint) .button");
+await fillText("#diagnostic-answer", "Examples help a model find a pattern and make a prediction.");
+await click(".diagnostic-card form > .button");
+await click(".diagnostic-feedback:not(.hint) .button");
+await wait(80);
+report.diagnostic.result = await evaluate(`({ result: Boolean(document.querySelector('.diagnostic-result')), recommendation: document.querySelector('.diagnostic-recommendation h2')?.textContent?.trim() ?? '', saved: Boolean(localStorage.getItem('bhavya-diagnostic')) })`);
 
 await clearAndReload("/learning/what-is-a-computer/");
 report.interactions.sequence = { initial: await state() };

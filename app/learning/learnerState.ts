@@ -1,6 +1,8 @@
 import { learningModules, LearningModule } from "./data";
 
 export const learnerProfileKey = "bhavya-learner-profile";
+export const learnerStateKey = "bhavya-learner-state";
+export const diagnosticKey = "bhavya-diagnostic";
 export const coachMissKey = (slug: string) => `bhavya-coach-misses:${slug}`;
 export const coachCompleteKey = (slug: string) => `bhavya-coach:${slug}`;
 export const reviewKey = (slug: string) => `bhavya-review:${slug}`;
@@ -18,6 +20,77 @@ export const defaultProfile: LearnerProfile = {
   minutes: "20",
   device: "phone",
 };
+
+export type EvidenceEvent = "encountered" | "attempted" | "hint" | "retry" | "demonstrated" | "recalled" | "applied";
+export type CapabilityStage = "seen" | "attempted" | "understood" | "practiced" | "applied" | "demonstrated";
+
+export type CapabilitySignal = {
+  slug: string;
+  encountered: number;
+  attempts: number;
+  hints: number;
+  mistakes: number;
+  successfulRetries: number;
+  recalls: number;
+  applications: number;
+  demonstrations: number;
+  lastEvidence: string;
+  stage: CapabilityStage;
+};
+
+export type LearnerCapabilityState = {
+  schemaVersion: 1;
+  capabilities: Record<string, CapabilitySignal>;
+};
+
+function blankSignal(slug: string): CapabilitySignal {
+  return { slug, encountered: 0, attempts: 0, hints: 0, mistakes: 0, successfulRetries: 0, recalls: 0, applications: 0, demonstrations: 0, lastEvidence: "", stage: "seen" };
+}
+
+export function readLearnerState(): LearnerCapabilityState {
+  if (typeof window === "undefined") return { schemaVersion: 1, capabilities: {} };
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(learnerStateKey) ?? "{}");
+    return { schemaVersion: 1, capabilities: parsed.capabilities ?? {} };
+  } catch {
+    return { schemaVersion: 1, capabilities: {} };
+  }
+}
+
+export function recordLearningEvidence(slug: string, event: EvidenceEvent): CapabilitySignal {
+  const state = readLearnerState();
+  const current = { ...blankSignal(slug), ...(state.capabilities[slug] ?? {}) };
+  current.encountered = Math.max(current.encountered, 1);
+  if (event === "attempted") current.attempts += 1;
+  if (event === "hint") { current.hints += 1; current.mistakes += 1; }
+  if (event === "retry") current.successfulRetries += 1;
+  if (event === "demonstrated") current.demonstrations += 1;
+  if (event === "recalled") current.recalls += 1;
+  if (event === "applied") current.applications += 1;
+  current.lastEvidence = event;
+  current.stage = current.applications > 0 ? "applied" : current.demonstrations > 0 && current.recalls > 0 ? "demonstrated" : current.demonstrations > 0 || current.recalls > 0 ? "understood" : current.successfulRetries > 0 ? "practiced" : current.attempts > 0 ? "attempted" : "seen";
+  state.capabilities[slug] = current;
+  window.localStorage.setItem(learnerStateKey, JSON.stringify(state));
+  return current;
+}
+
+export function capabilityFor(slug: string): CapabilitySignal {
+  return readLearnerState().capabilities[slug] ?? blankSignal(slug);
+}
+
+export function capabilityStatements(): Array<{ slug: string; title: string; statement: string; stage: CapabilityStage }> {
+  const state = readLearnerState();
+  return learningModules.map((module) => {
+    const signal = state.capabilities[module.slug] ?? blankSignal(module.slug);
+    const statement = signal.stage === "applied" ? `You applied this: ${module.skill}` : signal.stage === "demonstrated" ? `You can now demonstrate: ${module.skill}` : signal.stage === "understood" ? `You have shown understanding of: ${module.skill}` : signal.stage === "attempted" ? `You are practicing: ${module.skill}` : `Next capability: ${module.skill}`;
+    return { slug: module.slug, title: module.title, statement, stage: signal.stage };
+  });
+}
+
+export function weakCapabilitySlugs(): string[] {
+  const state = readLearnerState();
+  return Object.values(state.capabilities).filter((signal) => signal.hints > 0 || signal.mistakes > 0).sort((a, b) => (b.hints + b.mistakes) - (a.hints + a.mistakes)).map((signal) => signal.slug);
+}
 
 export const goalLabels: Record<LearnerProfile["goal"], string> = {
   "understand-ai": "Understand how AI works",

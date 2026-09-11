@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { learningModules, type LearningModule } from "./data";
+import ProjectMilestone from "./ProjectMilestone";
+import { recordLearningEvidence } from "./learnerState";
 
 type LessonLabProps = { module: LearningModule };
 
@@ -32,21 +34,25 @@ export default function LessonLab({ module }: LessonLabProps) {
   const [attempted, setAttempted] = useState(false);
   const [activityComplete, setActivityComplete] = useState(false);
   const [reflection, setReflection] = useState("");
+  const [projectComplete, setProjectComplete] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     setDone(window.localStorage.getItem(`bhavya-lesson:${module.slug}`) === "complete");
     setAttempted(window.localStorage.getItem(`bhavya-attempt:${module.slug}`) === "started");
     setActivityComplete(window.localStorage.getItem(`bhavya-activity:${module.slug}`) === "complete");
     setReflection(window.localStorage.getItem(`bhavya-reflection:${module.slug}`) ?? "");
+    setProjectComplete(module.slug !== "classification-and-patterns" || window.localStorage.getItem("bhavya-project:classification-and-patterns") === "complete");
     setHydrated(true);
   }, [module.slug]);
   const markAttempted = () => {
     window.localStorage.setItem(`bhavya-attempt:${module.slug}`, "started");
+    recordLearningEvidence(module.slug, "attempted");
     setAttempted(true);
   };
   const finish = () => {
-    if (!activityComplete || reflection.trim().length < 12) return;
+    if (!activityComplete || reflection.trim().length < 12 || !projectComplete) return;
     window.localStorage.setItem(`bhavya-lesson:${module.slug}`, "complete");
+    recordLearningEvidence(module.slug, "demonstrated");
     setDone(true);
   };
   const reflectionReady = reflection.trim().length >= 12;
@@ -57,10 +63,12 @@ export default function LessonLab({ module }: LessonLabProps) {
     <section className="lesson-intro"><p className="eyebrow">Why this matters</p><h2>{module.objective}</h2><p>{module.explanation}</p><div className="lesson-context"><div><strong>Before you begin</strong><span>{module.prerequisite}</span></div><div><strong>Example</strong><span>{module.example}</span></div><div><strong>Model</strong><span>{module.visual}</span></div></div></section>
     <Interaction module={module} onAttempt={markAttempted} onComplete={() => {
       window.localStorage.setItem(`bhavya-activity:${module.slug}`, "complete");
+      recordLearningEvidence(module.slug, "demonstrated");
       setActivityComplete(true);
     }} />
+    {module.slug === "classification-and-patterns" && <ProjectMilestone onComplete={() => setProjectComplete(true)} />}
     <section className="lesson-reflection"><p className="eyebrow">Reflect · leave a trail</p><h2>What would you test next?</h2><p>Write one thing you would change, measure, or verify if you continued this investigation. This note stays on this device and helps you remember your reasoning.</p><label htmlFor="lesson-reflection">Your reflection <span>(at least 12 characters)</span></label><textarea id="lesson-reflection" value={reflection} onChange={(event) => { setReflection(event.target.value); window.localStorage.setItem(`bhavya-reflection:${module.slug}`, event.target.value); }} rows={4} placeholder={module.nextStep} /><p className="reflection-status" role="status">{reflectionReady ? "Reflection saved. You can complete this lesson." : `${Math.max(0, 12 - reflection.trim().length)} more characters to unlock completion.`}</p></section>
-    <div className="lesson-completion"><div><p className="eyebrow">Completion</p><strong>{done ? "Lesson complete on this device" : activityComplete && reflectionReady ? "Activity and reflection complete" : activityComplete ? "Add a short reflection to finish" : attempted ? "Keep working until the activity is complete" : "Start the activity to begin"}</strong><p>{done ? "Your progress is saved locally. You can return or continue to the next topic." : activityComplete && reflectionReady ? `Ready to continue: ${module.nextStep}` : activityComplete ? `One last step: ${module.nextStep}` : attempted ? "Use the feedback to revise your thinking. Completion unlocks after you meet this activity's learning condition." : "There is no score to chase. Make a choice, inspect the feedback, and leave evidence of your thinking."}</p></div><div className="completion-actions"><button className="button" type="button" onClick={finish} disabled={done || !activityComplete || !reflectionReady}>{done ? "Completed" : "Mark complete"}</button>{nextModule && <Link className="button light" href={`/learning/${nextModule.slug}`}>Next lesson →</Link>}</div></div>
+    <div className="lesson-completion"><div><p className="eyebrow">Completion</p><strong>{done ? "Lesson complete on this device" : !projectComplete ? "Apply the evidence rule in the project" : activityComplete && reflectionReady ? "Activity, application, and reflection complete" : activityComplete ? "Add a short reflection to finish" : attempted ? "Keep working until the activity is complete" : "Start the activity to begin"}</strong><p>{done ? "Your progress is saved locally. You can return or continue to the next topic." : !projectComplete ? "Your lesson evidence is ready; now demonstrate the rule in a new claim." : activityComplete && reflectionReady ? `Ready to continue: ${module.nextStep}` : activityComplete ? `One last step: ${module.nextStep}` : attempted ? "Use the feedback to revise your thinking. Completion unlocks after you meet this activity's learning condition." : "There is no score to chase. Make a choice, inspect the feedback, and leave evidence of your thinking."}</p></div><div className="completion-actions"><button className="button" type="button" onClick={finish} disabled={done || !activityComplete || !reflectionReady || !projectComplete}>{done ? "Completed" : "Mark complete"}</button>{nextModule && <Link className="button light" href={`/learning/${nextModule.slug}`}>Next lesson →</Link>}</div></div>
   </div>;
 }
 

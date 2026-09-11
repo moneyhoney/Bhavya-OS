@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { ArrowRight, Check, RotateCcw, Sparkles } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { defaultProfile, goalLabels, coachCompleteKey, coachMissKey, coachPrompts, LearnerProfile, learnerProfileKey, readProfile, recommendedModule, reviewKey } from "./learnerState";
+import { defaultProfile, goalLabels, coachCompleteKey, coachMissKey, coachPrompts, LearnerProfile, learnerProfileKey, readProfile, recommendedModule, recordLearningEvidence, reviewKey } from "./learnerState";
+import { deterministicCoachEvaluator } from "./coachPolicy";
 import { learningModules } from "./data";
 
 function saveProfile(profile: LearnerProfile) {
@@ -43,19 +44,21 @@ export default function CoachDesk() {
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const normalized = answer.toLowerCase();
-    const missing = prompt.required.filter((term) => !normalized.includes(term));
     const nextAttempts = attempts + 1;
     setAttempts(nextAttempts);
-    if (missing.length > 0) {
+    const evaluation = deterministicCoachEvaluator.evaluate({ slug: target.slug, response: answer, attempt: nextAttempts });
+    if (!evaluation.correct) {
       const nextMisses = missCount + 1;
       window.localStorage.setItem(coachMissKey(target.slug), String(nextMisses));
-      setFeedback({ kind: "hint", text: `You have a useful start. Look again for ${missing.join(" and ")}. ${prompt.hint}` });
+      recordLearningEvidence(target.slug, "hint");
+      setFeedback({ kind: "hint", text: `You have a useful start. Look again for ${evaluation.missing.join(" and ")}. ${evaluation.hint}` });
       return;
     }
     window.localStorage.setItem(coachCompleteKey(target.slug), "complete");
     window.localStorage.setItem(reviewKey(target.slug), String(Date.now() + 3 * 24 * 60 * 60 * 1000));
-    setFeedback({ kind: "success", text: prompt.explain });
+    recordLearningEvidence(target.slug, nextAttempts > 1 ? "retry" : "recalled");
+    if (nextAttempts > 1) recordLearningEvidence(target.slug, "recalled");
+    setFeedback({ kind: "success", text: evaluation.explanation });
   };
 
   const reset = () => {
