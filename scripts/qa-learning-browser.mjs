@@ -196,7 +196,7 @@ report.interactions.sequence.correct = await state();
 report.interactions.sequence.completed = await completeLesson();
 report.nextLessonHref = await evaluate("document.querySelector('.completion-actions a.button.light')?.getAttribute('href') ?? ''");
 await click('.completion-actions a.button.light');
-await wait(250);
+await waitForExpression("location.pathname.includes('/learning/what-is-data/')");
 report.nextLessonPath = await evaluate("location.pathname");
 await navigate("/learning/");
 await waitForExpression("document.querySelectorAll('.module-card.is-complete').length === 1");
