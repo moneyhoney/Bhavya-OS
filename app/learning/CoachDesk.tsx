@@ -19,21 +19,23 @@ export default function CoachDesk() {
   const [feedback, setFeedback] = useState<{ kind: "hint" | "success"; text: string } | null>(null);
   const [attempts, setAttempts] = useState(0);
   const [savedProfile, setSavedProfile] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setProfile(readProfile());
     setTargetSlug(recommendedModule().slug);
+    setHydrated(true);
   }, []);
 
   const target = learningModules.find((module) => module.slug === targetSlug) ?? learningModules[0];
   const prompt = coachPrompts[target.slug];
   const coachName = profile.name.trim() || "Learner";
-  const dueAt = typeof window !== "undefined" ? Number(window.localStorage.getItem(reviewKey(target.slug)) ?? 0) : 0;
+  const dueAt = hydrated ? Number(window.localStorage.getItem(reviewKey(target.slug)) ?? 0) : 0;
   const isReview = dueAt > 0 && dueAt <= Date.now();
   const depthCopy = prompt[depth];
-  const missCount = typeof window !== "undefined" ? Number(window.localStorage.getItem(coachMissKey(target.slug)) ?? 0) : 0;
+  const missCount = hydrated ? Number(window.localStorage.getItem(coachMissKey(target.slug)) ?? 0) : 0;
 
-  const moduleOptions = useMemo(() => learningModules.map((module) => ({ ...module, completed: typeof window !== "undefined" && window.localStorage.getItem(coachCompleteKey(module.slug)) === "complete" })), []);
+  const moduleOptions = useMemo(() => learningModules.map((module) => ({ ...module, completed: hydrated && window.localStorage.getItem(coachCompleteKey(module.slug)) === "complete" })), [hydrated]);
 
   const handleProfile = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

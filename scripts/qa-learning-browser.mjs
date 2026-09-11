@@ -27,7 +27,8 @@ const failedRequests = [];
 socket.addEventListener("message", (event) => {
   const message = JSON.parse(event.data);
   if (message.method === "Runtime.exceptionThrown") {
-    runtimeEvents.push({ type: "exception", text: message.params.exceptionDetails?.text ?? "runtime exception" });
+    const details = message.params.exceptionDetails ?? {};
+    runtimeEvents.push({ type: "exception", text: details.text ?? "runtime exception", description: details.exception?.description ?? "", url: details.url ?? "", lineNumber: details.lineNumber ?? 0, columnNumber: details.columnNumber ?? 0 });
   }
   if (message.method === "Log.entryAdded" && ["error", "warning"].includes(message.params.entry.level)) {
     runtimeEvents.push({ type: message.params.entry.level, text: message.params.entry.text });

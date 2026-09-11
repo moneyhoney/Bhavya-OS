@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { ArrowRight, CalendarClock, CircleUserRound } from "lucide-react";
 import { useEffect, useState } from "react";
-import { defaultProfile, goalLabels, learningDecision, LearnerProfile, learnerProfileKey, readProfile, type LearningDecision } from "./learnerState";
+import { defaultProfile, goalLabels, initialLearningDecision, learningDecision, LearnerProfile, learnerProfileKey, readProfile, type LearningDecision } from "./learnerState";
 
 export default function LearningDesk() {
   const [profile, setProfile] = useState<LearnerProfile>(defaultProfile);
-  const [decision, setDecision] = useState<LearningDecision>(learningDecision());
+  const [decision, setDecision] = useState<LearningDecision>(initialLearningDecision());
   const [hasSetup, setHasSetup] = useState(false);
   useEffect(() => { setProfile(readProfile()); setDecision(learningDecision()); setHasSetup(Boolean(window.localStorage.getItem(learnerProfileKey))); }, []);
   const name = profile.name.trim() || "Learner";

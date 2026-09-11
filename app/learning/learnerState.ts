@@ -195,8 +195,13 @@ export function recommendedModule(): LearningModule {
   return learningDecision().module;
 }
 
+export function initialLearningDecision(): LearningDecision {
+  const module = learningModules[0];
+  return { kind: "advance", module, heading: module.title, description: `A focused checkpoint on ${module.skill.toLowerCase()}`, action: "Open lesson", href: `/learning/${module.slug}/` };
+}
+
 export function learningDecision(): LearningDecision {
-  if (typeof window === "undefined") return { kind: "advance", module: learningModules[0], heading: learningModules[0].title, description: `A focused checkpoint on ${learningModules[0].skill.toLowerCase()}`, action: "Open lesson", href: `/learning/${learningModules[0].slug}/` };
+  if (typeof window === "undefined") return initialLearningDecision();
   const now = Date.now();
   const due = learningModules.find((module) => Number(window.localStorage.getItem(reviewKey(module.slug)) ?? 0) <= now && Number(window.localStorage.getItem(reviewKey(module.slug)) ?? 0) > 0);
   if (due) return { kind: "review", module: due, heading: "Retrieve before you continue", description: `A short recall checkpoint is due for ${due.title}. Recall first, then return to the lesson.`, action: "Start review", href: "/learning/coach/" };
