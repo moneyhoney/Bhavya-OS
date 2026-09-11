@@ -89,7 +89,7 @@ async function evaluate(expression) {
 
 async function navigate(path) {
   await send("Page.navigate", { url: `${baseUrl}${path}` });
-  await waitFor(path === "/learning/" ? ".module-grid" : ".lesson-lab");
+  await waitFor(path === "/learning/" ? ".module-grid" : path === "/learning/coach/" ? ".coach-session" : ".lesson-lab");
 }
 
 async function click(selector) {
@@ -104,8 +104,19 @@ async function click(selector) {
 async function clearAndReload(path) {
   await navigate(path);
   await evaluate("localStorage.clear(); location.reload()");
-  await waitFor(".lesson-lab");
-  await waitFor('[data-learning-hydrated="true"]');
+  await waitFor(path === "/learning/coach/" ? ".coach-session" : ".lesson-lab");
+  if (path !== "/learning/coach/") await waitFor('[data-learning-hydrated="true"]');
+}
+
+async function fillText(selector, value) {
+  await evaluate(`(() => {
+    const field = document.querySelector(${JSON.stringify(selector)});
+    if (!field) throw new Error('Field is missing: ' + ${JSON.stringify(selector)});
+    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set ?? Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+    setter.call(field, ${JSON.stringify(value)});
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    field.dispatchEvent(new Event('change', { bubbles: true }));
+  })()`);
 }
 
 async function state() {
@@ -152,6 +163,20 @@ report.home = await evaluate(`({
   moduleCount: document.querySelectorAll('.module-card').length,
   firstLessonVisible: Boolean(document.querySelector('a[href*="/learning/what-is-a-computer/"]')),
 })`);
+
+await clearAndReload("/learning/coach/");
+report.coach = { initial: await evaluate(`({ path: location.pathname, heading: document.querySelector('.coach-session h2')?.textContent?.trim() ?? '', profileSaved: Boolean(localStorage.getItem('bhavya-learner-profile')) })`) };
+await fillText("#learner-name", "Asha");
+await click(".coach-form .button");
+await wait(100);
+await fillText("#coach-answer", "It does something useful.");
+await click(".coach-answer .button");
+await wait(100);
+report.coach.wrong = await evaluate(`({ feedback: document.querySelector('.coach-feedback')?.textContent?.trim() ?? '', attempts: document.querySelector('.coach-attempts')?.textContent?.trim() ?? '' })`);
+await fillText("#coach-answer", "The input is received, instructions are followed, and an output is produced.");
+await click(".coach-answer .button");
+await wait(100);
+report.coach.correct = await evaluate(`({ feedback: document.querySelector('.coach-feedback')?.textContent?.trim() ?? '', reviewSaved: Boolean(localStorage.getItem('bhavya-review:what-is-a-computer')), coachComplete: localStorage.getItem('bhavya-coach:what-is-a-computer') })`);
 
 await clearAndReload("/learning/what-is-a-computer/");
 report.interactions.sequence = { initial: await state() };

@@ -3,9 +3,12 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const excluded = new Set([".git", ".next", "node_modules", "coverage"]);
+const excluded = new Set([".git", ".next", "node_modules", "coverage", ".qa-profile"]);
+const referenceCorpusRoots = new Set(["references/bhavya_references_v2"]);
 
 async function walk(directory) {
+  const relativeDirectory = relative(root, directory).replaceAll("\\", "/");
+  if (referenceCorpusRoots.has(relativeDirectory)) return [];
   const entries = await readdir(directory, { withFileTypes: true });
   const directories = [];
   for (const entry of entries) {

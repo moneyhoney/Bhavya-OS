@@ -15,9 +15,10 @@ The intended product hierarchy is Learning Path → Level → Course → Module 
 ## Current state
 
 - **Implemented:** `/learning` entry page, six module routes, six differentiated client-side interactions, explanatory feedback, activity-specific completion conditions, device-local resume state, a persisted learner reflection for each lesson, calculated module progress, and next-lesson navigation.
-- **Partial:** progress is device-local only; it is not an account, synchronised record, official assessment, analytics system, or mastery model.
+- **Implemented:** `/learning/coach` provides an offline-first local coach checkpoint. It reads the learner's optional name, goal, available minutes, and usual device; selects a next or due topic; offers simple/practical/technical explanations; evaluates a written response against the concept; gives a targeted hint before explanation; records misses; and schedules a three-day recall checkpoint.
+- **Partial:** progress, coach signals, and review dates are device-local only; they are not an account, synchronised record, official assessment, analytics system, or production AI model.
 - **Proposed:** all current module content and progression; Foundation review is required before publication as official curriculum.
-- **Not started:** accounts, server persistence, mentor workflows, AI Labs, project submission, moderated sharing, adaptive AI assistance, and offline packaging.
+- **Not started:** accounts, server persistence, mentor workflows, AI Labs, project submission, moderated sharing, provider-backed AI assistance, and offline packaging. Capstone/project evaluation is still future work.
 
 ## Interaction expectations
 
@@ -27,6 +28,10 @@ Do not make six copies of a quiz. Match the interaction to the idea: sequence in
 
 - `page.tsx` — learning entry route.
 - `LearningHome.tsx` — progress-aware path and discovery.
+- `LearningDesk.tsx` — daily next-action, local profile signal, and review entry point.
+- `CoachDesk.tsx` — focused local tutoring checkpoint with depth controls, hint/retry, explanation, and review scheduling.
+- `learnerState.ts` — typed local learner profile, coach prompts, recommendation, and review helpers.
+- `coach/page.tsx` — coach route.
 - `data.ts` — typed proposed module metadata.
 - `LessonLab.tsx` — differentiated interaction engine.
 - `[module]/page.tsx` — static module route shell.
