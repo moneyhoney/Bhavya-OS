@@ -182,6 +182,15 @@ report.home = await evaluate(`({
   moduleCount: document.querySelectorAll('.module-card').length,
   firstLessonVisible: Boolean(document.querySelector('a[href*="/learning/what-is-a-computer/"]')),
 })`);
+await waitForExpression("document.querySelectorAll('.capability-details .capability-detail').length === 6");
+await click('.capability-details summary');
+await waitForExpression("document.querySelector('.capability-details')?.open === true");
+report.home.capabilityEvidence = await evaluate(`({
+  detailCount: document.querySelectorAll('.capability-details .capability-detail').length,
+  summary: document.querySelector('.capability-summary')?.textContent?.trim() ?? '',
+  firstAction: document.querySelector('.capability-detail .text-link')?.textContent?.trim() ?? '',
+  firstHref: document.querySelector('.capability-detail .text-link')?.getAttribute('href') ?? ''
+})`);
 
 await clearAndReload("/learning/coach/");
 await wait(800);
