@@ -187,18 +187,19 @@ report.coach.correct = await evaluate(`({ feedback: document.querySelector('.coa
 
 await clearAndReload("/learning/diagnostic/");
 report.diagnostic = { initial: await evaluate(`({ path: location.pathname, question: document.querySelector('.diagnostic-card h2')?.textContent?.trim() ?? '', questionNumber: document.querySelector('.learning-status')?.textContent?.trim() ?? '' })`) };
-await click(".diagnostic-options label:nth-child(2) input");
+await evaluate(`(() => { const input = document.querySelector('.diagnostic-options input[value="screen-keyboard"]'); if (!input) throw new Error('Diagnostic wrong-answer option is missing'); input.click(); return input.checked; })()`);
+await waitForExpression("Boolean(document.querySelector('.diagnostic-options label.selected'))");
 await click(".diagnostic-card form > .button");
 await wait(80);
 report.diagnostic.wrong = await evaluate(`({ feedback: document.querySelector('.diagnostic-feedback')?.textContent?.trim() ?? '', retryVisible: Boolean(document.querySelector('.diagnostic-feedback .button.light')) })`);
 await click(".diagnostic-feedback .button.light");
-await click(".diagnostic-options label:nth-child(1)");
+await evaluate(`document.querySelector('.diagnostic-options input[value="input-output"]').click()`);
 await click(".diagnostic-card form > .button");
 await click(".diagnostic-feedback:not(.hint) .button");
-await click(".diagnostic-options label:nth-child(1)");
+await evaluate(`document.querySelector('.diagnostic-options input[value="context"]').click()`);
 await click(".diagnostic-card form > .button");
 await click(".diagnostic-feedback:not(.hint) .button");
-await click(".diagnostic-options label:nth-child(1)");
+await evaluate(`document.querySelector('.diagnostic-options input[value="test"]').click()`);
 await click(".diagnostic-card form > .button");
 await click(".diagnostic-feedback:not(.hint) .button");
 await fillText("#diagnostic-answer", "Examples help a model find a pattern and make a prediction.");
