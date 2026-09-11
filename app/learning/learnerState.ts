@@ -44,6 +44,15 @@ export type LearnerCapabilityState = {
   capabilities: Record<string, CapabilitySignal>;
 };
 
+export type ProjectEvidenceRecord = {
+  schemaVersion: 1;
+  draft: string;
+  decision: "check" | "ask" | "share";
+  complete: boolean;
+  rubric: Array<{ id: string; passed: boolean }>;
+  updatedAt: string;
+};
+
 export type LearningDecisionKind = "review" | "remediate" | "resume" | "apply" | "advance";
 export type LearningDecision = {
   kind: LearningDecisionKind;
@@ -90,10 +99,28 @@ export function capabilityFor(slug: string): CapabilitySignal {
 }
 
 export function isProjectComplete(): boolean {
-  if (typeof window === "undefined") return false;
+  return Boolean(readProjectEvidence()?.complete);
+}
+
+export function readProjectEvidence(): ProjectEvidenceRecord | null {
+  if (typeof window === "undefined") return null;
   const saved = window.localStorage.getItem(projectKey);
-  if (saved === "complete") return true;
-  try { return Boolean((JSON.parse(saved ?? "{}") as { complete?: boolean }).complete); } catch { return false; }
+  if (!saved) return null;
+  if (saved === "complete") return { schemaVersion: 1, draft: "", decision: "check", complete: true, rubric: [], updatedAt: "" };
+  try {
+    const parsed = JSON.parse(saved) as Partial<ProjectEvidenceRecord>;
+    if (!parsed || typeof parsed !== "object") return null;
+    return {
+      schemaVersion: 1,
+      draft: typeof parsed.draft === "string" ? parsed.draft : "",
+      decision: parsed.decision === "ask" || parsed.decision === "share" ? parsed.decision : "check",
+      complete: parsed.complete === true,
+      rubric: Array.isArray(parsed.rubric) ? parsed.rubric.filter((item): item is { id: string; passed: boolean } => Boolean(item && typeof item.id === "string" && typeof item.passed === "boolean")) : [],
+      updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : "",
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function capabilityStatements(): Array<{ slug: string; title: string; statement: string; stage: CapabilityStage }> {

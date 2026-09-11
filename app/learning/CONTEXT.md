@@ -56,7 +56,7 @@ Read `curriculum/CONTEXT.md` before changing educational content. Use `skills/bh
 - Project evidence is stored as a version-tolerant local record and is read consistently after refresh before the path recommends another project attempt.
 - `coachPolicy.ts` defines a deterministic evaluator behind a future tutor/coach provider boundary.
 - `learningState.ts` resolves the next learning action from due review, unfinished project work, unresolved attempts, unfinished lessons, diagnostic signals, and then the next appropriate challenge.
-- The current project milestone is a local guided practice brief, not cloud submission, human review, or an official Foundation assignment.
+- The current project milestone is a local guided practice brief, not cloud submission, human review, or an official Foundation assignment. It now asks for an explicit responsible decision plus a written claim/evidence/uncertainty brief, evaluates those criteria transparently, and persists a versioned project record.
 
 ## Routed references
 

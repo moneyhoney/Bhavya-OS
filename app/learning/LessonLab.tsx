@@ -60,7 +60,7 @@ export default function LessonLab({ module }: LessonLabProps) {
 
   const nextModule = learningModules.find((candidate) => candidate.number === String(Number(module.number) + 1).padStart(2, "0"));
   return <div className="lesson-lab" data-learning-hydrated={hydrated ? "true" : "false"}>
-    <div className="lesson-flow" aria-label="Lesson flow"><span>Understand</span><span>Observe</span><span>Try</span><span>Experiment</span><span>Reflect</span></div>
+    <div className="lesson-flow" aria-label="Lesson flow"><span>Understand</span><span>Observe</span><span>Try</span><span>Experiment</span><span>Build</span><span>Reflect</span></div>
     <section className="lesson-intro"><p className="eyebrow">Why this matters</p><h2>{module.objective}</h2><p>{module.explanation}</p><div className="lesson-context"><div><strong>Before you begin</strong><span>{module.prerequisite}</span></div><div><strong>Example</strong><span>{module.example}</span></div><div><strong>Model</strong><span>{module.visual}</span></div></div></section>
     <Interaction module={module} onAttempt={markAttempted} onComplete={() => {
       window.localStorage.setItem(`bhavya-activity:${module.slug}`, "complete");
