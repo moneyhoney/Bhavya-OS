@@ -184,6 +184,7 @@ report.home = await evaluate(`({
 })`);
 
 await clearAndReload("/learning/coach/");
+await wait(800);
 report.coach = { initial: await evaluate(`({ path: location.pathname, heading: document.querySelector('.coach-session h2')?.textContent?.trim() ?? '', profileSaved: Boolean(localStorage.getItem('bhavya-learner-profile')) })`) };
 await fillText("#learner-name", "Asha");
 await click(".coach-form .button");
@@ -198,6 +199,7 @@ await wait(100);
 report.coach.correct = await evaluate(`({ feedback: document.querySelector('.coach-feedback')?.textContent?.trim() ?? '', reviewSaved: Boolean(localStorage.getItem('bhavya-review:what-is-a-computer')), coachComplete: localStorage.getItem('bhavya-coach:what-is-a-computer') })`);
 
 await clearAndReload("/learning/diagnostic/");
+await wait(800);
 report.diagnostic = { initial: await evaluate(`({ path: location.pathname, question: document.querySelector('.diagnostic-card h2')?.textContent?.trim() ?? '', questionNumber: document.querySelector('.learning-status')?.textContent?.trim() ?? '' })`) };
 await evaluate(`(() => { const input = document.querySelector('.diagnostic-options input[value="screen-keyboard"]'); if (!input) throw new Error('Diagnostic wrong-answer option is missing'); input.click(); return input.checked; })()`);
 await waitForExpression("Boolean(document.querySelector('.diagnostic-options label.selected'))");
@@ -220,6 +222,7 @@ await click(".diagnostic-feedback:not(.hint) .button");
 await wait(80);
 report.diagnostic.result = await evaluate(`({ result: Boolean(document.querySelector('.diagnostic-result')), recommendation: document.querySelector('.diagnostic-recommendation h2')?.textContent?.trim() ?? '', saved: Boolean(localStorage.getItem('bhavya-diagnostic')) })`);
 await navigate("/learning/");
+await waitForExpression("document.querySelector('.desk-plan h3')?.textContent === 'Begin with the concept you missed'");
 report.diagnostic.pathChanged = await evaluate(`({ nextAction: document.querySelector('.desk-plan h3')?.textContent?.trim() ?? '', weakSlugs: JSON.parse(localStorage.getItem('bhavya-diagnostic') ?? '{}').weakSlugs ?? [] })`);
 
 await clearAndReload("/learning/what-is-a-computer/");
@@ -230,6 +233,7 @@ await click(".activity-frame .button");
 await wait(80);
 report.interactions.sequence.wrong = await state();
 await navigate("/learning/");
+await waitForExpression("document.querySelector('.desk-plan h3')?.textContent === 'Strengthen one weak concept'");
 report.interactions.sequence.adaptiveAfterWrong = await evaluate(`({ heading: document.querySelector('.desk-plan h3')?.textContent?.trim() ?? '', action: document.querySelector('.desk-plan .button')?.textContent?.trim() ?? '', href: document.querySelector('.desk-plan .button')?.getAttribute('href') ?? '' })`);
 await navigate("/learning/what-is-a-computer/");
 await click('.sequence-row:nth-child(2) button[aria-label*="up"]');
@@ -360,6 +364,7 @@ for (const lesson of cases) {
   let adaptiveBeforeProject = null;
   if (lesson.name === "verification") {
     await navigate("/learning/");
+    await waitForExpression("document.querySelector('.desk-plan h3')?.textContent === 'Apply the evidence rule'");
     adaptiveBeforeProject = await evaluate(`({ heading: document.querySelector('.desk-plan h3')?.textContent?.trim() ?? '', action: document.querySelector('.desk-plan .button')?.textContent?.trim() ?? '', href: document.querySelector('.desk-plan .button')?.getAttribute('href') ?? '' })`);
     await navigate(lesson.path);
   }
