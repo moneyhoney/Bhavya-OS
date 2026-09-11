@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { learningModules, type LearningModule } from "./data";
+import { explanationAtDepth, learningModules, type ExplanationDepth, type LearningModule } from "./data";
 import ProjectMilestone from "./ProjectMilestone";
 import { capabilityFor, isProjectComplete, recordLearningEvidence } from "./learnerState";
 
@@ -62,6 +62,7 @@ export default function LessonLab({ module }: LessonLabProps) {
   return <div className="lesson-lab" data-learning-hydrated={hydrated ? "true" : "false"}>
     <div className="lesson-flow" aria-label="Lesson flow"><span>Understand</span><span>Observe</span><span>Try</span><span>Experiment</span><span>Build</span><span>Reflect</span></div>
     <section className="lesson-intro"><p className="eyebrow">Why this matters</p><h2>{module.objective}</h2><p>{module.explanation}</p><div className="lesson-context"><div><strong>Before you begin</strong><span>{module.prerequisite}</span></div><div><strong>Example</strong><span>{module.example}</span></div><div><strong>Model</strong><span>{module.visual}</span></div></div></section>
+    <DepthExplorer module={module} />
     <Interaction module={module} onAttempt={markAttempted} onComplete={() => {
       window.localStorage.setItem(`bhavya-activity:${module.slug}`, "complete");
       recordLearningEvidence(module.slug, "demonstrated");
@@ -71,6 +72,23 @@ export default function LessonLab({ module }: LessonLabProps) {
     <section className="lesson-reflection"><p className="eyebrow">Reflect · leave a trail</p><h2>What would you test next?</h2><p>Write one thing you would change, measure, or verify if you continued this investigation. This note stays on this device and helps you remember your reasoning.</p><label htmlFor="lesson-reflection">Your reflection <span>(at least 12 characters)</span></label><textarea id="lesson-reflection" value={reflection} onChange={(event) => { setReflection(event.target.value); window.localStorage.setItem(`bhavya-reflection:${module.slug}`, event.target.value); }} rows={4} placeholder={module.nextStep} /><p className="reflection-status" role="status">{reflectionReady ? "Reflection saved. You can complete this lesson." : `${Math.max(0, 12 - reflection.trim().length)} more characters to unlock completion.`}</p></section>
     <div className="lesson-completion"><div><p className="eyebrow">Completion</p><strong>{done ? "Lesson complete on this device" : !projectComplete ? "Apply the evidence rule in the project" : activityComplete && reflectionReady ? "Activity, application, and reflection complete" : activityComplete ? "Add a short reflection to finish" : attempted ? "Keep working until the activity is complete" : "Start the activity to begin"}</strong><p>{done ? "Your progress is saved locally. You can return or continue to the next topic." : !projectComplete ? "Your lesson evidence is ready; now demonstrate the rule in a new claim." : activityComplete && reflectionReady ? `Ready to continue: ${module.nextStep}` : activityComplete ? `One last step: ${module.nextStep}` : attempted ? "Use the feedback to revise your thinking. Completion unlocks after you meet this activity's learning condition." : "There is no score to chase. Make a choice, inspect the feedback, and leave evidence of your thinking."}</p></div><div className="completion-actions"><button className="button" type="button" onClick={finish} disabled={done || !activityComplete || !reflectionReady || !projectComplete}>{done ? "Completed" : "Mark complete"}</button>{nextModule && <Link className="button light" href={`/learning/${nextModule.slug}`}>Next lesson →</Link>}</div></div>
   </div>;
+}
+
+function DepthExplorer({ module }: { module: LearningModule }) {
+  const [depth, setDepth] = useState<ExplanationDepth>("simple");
+  const options: Array<{ id: ExplanationDepth; label: string; note: string }> = [
+    { id: "simple", label: "Make it clear", note: "Plain language and a concrete mental model" },
+    { id: "practical", label: "Show me", note: "A situation, a decision, and a common mistake" },
+    { id: "technical", label: "Go deeper", note: "Mechanisms and vocabulary for closer study" },
+  ];
+  const panelId = `explanation-${module.slug}`;
+  return <section className="depth-explorer" aria-labelledby={`${panelId}-title`}>
+    <div className="depth-heading"><p className="eyebrow">Choose your depth</p><h2 id={`${panelId}-title`}>Build the same idea in three layers.</h2><p>You can change the explanation without leaving the lesson. Start with the clearest layer, then go deeper when you are ready.</p></div>
+    <div className="depth-tabs" role="tablist" aria-label="Explanation depth">
+      {options.map((option) => <button key={option.id} className={depth === option.id ? "is-active" : ""} type="button" role="tab" aria-selected={depth === option.id} aria-controls={panelId} onClick={() => setDepth(option.id)}><span>{option.label}</span><small>{option.note}</small></button>)}
+    </div>
+    <div className="depth-panel" id={panelId} role="tabpanel" tabIndex={0} aria-live="polite"><p className="depth-label">{options.find((option) => option.id === depth)?.label}</p><p>{explanationAtDepth(module.slug, depth)}</p></div>
+  </section>;
 }
 
 function Interaction({ module, onAttempt, onComplete }: { module: LearningModule; onAttempt: () => void; onComplete: () => void }) {

@@ -16,6 +16,43 @@ export type LearningModule = {
   sourceMode: "original";
 };
 
+export type ExplanationDepth = "simple" | "practical" | "technical";
+export type LessonDepthContent = Record<ExplanationDepth, string>;
+
+/** Original explanations that change vocabulary, context, and mechanism - not just length. */
+export const lessonDepthContent: Record<string, LessonDepthContent> = {
+  "what-is-a-computer": {
+    simple: "Think of a phone as a careful helper. It receives something, follows steps, remembers information for a while, and gives you a result. A photo starts as light entering the camera and ends as a picture on the screen.",
+    practical: "When you take a photo, the camera receives light, the phone follows image-processing instructions, stores the picture, and shows it back to you. If the lens is covered, changing the instructions cannot recover the missing input.",
+    technical: "A computer is a programmable information-processing system. Inputs change its state; instructions transform data in memory; outputs expose the resulting state. Separating input, processing, storage, and output helps you diagnose where a system failed.",
+  },
+  "what-is-data": {
+    simple: "Data is a recorded observation. The number 18 is only a clue until we know 18 what, where, and when. Context helps us read an observation without guessing.",
+    practical: "Imagine recording rainfall each morning. Keep the value, unit, date, and place together. Two readings can be compared carefully only when you know they were measured in a comparable way; a missing unit can change the story.",
+    technical: "A useful dataset gives observations a schema: fields, units, labels, and collection context. Features describe an example, while a label names the category or outcome we are studying. Sampling and missing values limit which claims the data can support.",
+  },
+  "algorithms-and-instructions": {
+    simple: "An algorithm is a set of steps for getting something done. The order matters, and another person should be able to follow the steps without reading your mind. Testing shows where a step is unclear.",
+    practical: "For a route to a water tap, say where to put the cup, when to turn the tap on, and when to stop. Ask someone else to follow it. If they pause or choose a different step, revise the instruction instead of blaming the reader.",
+    technical: "An algorithm defines a sequence of operations, decisions, and stopping conditions. Preconditions describe what must be true before a step; postconditions describe the expected result. Testing exposes hidden assumptions and supports iterative refinement.",
+  },
+  "what-is-ai": {
+    simple: "Many AI systems use examples to notice patterns and make a prediction. A prediction can be useful, but it is not a person and it is not automatically true. Someone still needs to check whether the answer fits the situation.",
+    practical: "Suppose a system groups sounds or images. Look at the examples it learned from, ask what pattern it may be using, and check a new result against the real situation. A useful output is a starting point for a decision, not the whole decision.",
+    technical: "AI is a broad field that includes systems for recognition, prediction, search, and generation. A model maps inputs to outputs using a designed procedure or learned parameters. Its behavior depends on data, objective, context, and evaluation, so performance can fail outside its examples.",
+  },
+  "machine-learning-by-example": {
+    simple: "A machine-learning model looks at labelled examples, finds a pattern, and uses that pattern to guess about a new example. When the guess is wrong, comparing it with the label gives a clue about what to improve.",
+    practical: "In the toy leaf activity, moving the threshold changes which scores count as a leaf. A lower threshold may catch more leaves but also include more non-leaves. Compare the errors, not just the number, before choosing a setting.",
+    technical: "Training uses labelled examples to fit a model; inference applies the learned rule to new inputs. A decision threshold changes false positives and false negatives. Testing on held-out or new examples helps reveal whether the model generalizes rather than memorizes.",
+  },
+  "classification-and-patterns": {
+    simple: "Classification means choosing a label for something. A label is a useful decision, not a fact stamped onto the world. When an example does not fit clearly, pause and ask what evidence is missing.",
+    practical: "If an AI-style answer calls a claim trustworthy, inspect the source, date, evidence, and uncertainty. Marking a claim as 'check first' is not failure; it is a responsible response when the evidence does not support confidence.",
+    technical: "A classifier divides a feature space into categories using a decision boundary. Edge cases sit near or outside that boundary, where small changes in evidence can change the label. Evaluation should inspect error types and the evidence available for each decision, not only overall accuracy.",
+  },
+};
+
 /** Proposed, original module metadata. Review is required before publication. */
 export const learningModules: LearningModule[] = [
   {
@@ -124,5 +161,9 @@ export const learningModules: LearningModule[] = [
 
 export function getLearningModule(slug: string) {
   return learningModules.find((module) => module.slug === slug);
+}
+
+export function explanationAtDepth(slug: string, depth: ExplanationDepth) {
+  return lessonDepthContent[slug]?.[depth] ?? "";
 }
 

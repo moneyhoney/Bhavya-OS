@@ -57,6 +57,7 @@ Read `curriculum/CONTEXT.md` before changing educational content. Use `skills/bh
 - `coachPolicy.ts` defines a deterministic evaluator behind a future tutor/coach provider boundary.
 - `learningState.ts` resolves the next learning action from due review, unfinished project work, unresolved attempts, unfinished lessons, diagnostic signals, and then the next appropriate challenge.
 - The current project milestone is a local guided practice brief, not cloud submission, human review, or an official Foundation assignment. It now asks for an explicit responsible decision plus a written claim/evidence/uncertainty brief, evaluates those criteria transparently, and persists a versioned project record.
+- Each lesson includes three original explanation depths: clear (plain language and a mental model), practical (a situation and decision), and technical (mechanism and vocabulary). The control changes the teaching representation without changing the activity or completion state.
 
 ## Routed references
 
