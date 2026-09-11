@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { learningModules, type LearningModule } from "./data";
 import ProjectMilestone from "./ProjectMilestone";
-import { recordLearningEvidence } from "./learnerState";
+import { capabilityFor, recordLearningEvidence } from "./learnerState";
 
 type LessonLabProps = { module: LearningModule };
 
@@ -46,7 +46,8 @@ export default function LessonLab({ module }: LessonLabProps) {
   }, [module.slug]);
   const markAttempted = () => {
     window.localStorage.setItem(`bhavya-attempt:${module.slug}`, "started");
-    recordLearningEvidence(module.slug, "attempted");
+    const prior = capabilityFor(module.slug);
+    recordLearningEvidence(module.slug, prior.attempts > 0 && prior.demonstrations === 0 ? "hint" : "attempted");
     setAttempted(true);
   };
   const finish = () => {

@@ -347,8 +347,14 @@ for (const lesson of cases) {
   const wrong = await lesson.wrong();
   await lesson.act();
   const after = await state();
+  let adaptiveBeforeProject = null;
+  if (lesson.name === "verification") {
+    await navigate("/learning/");
+    adaptiveBeforeProject = await evaluate(`({ heading: document.querySelector('.desk-plan h3')?.textContent?.trim() ?? '', action: document.querySelector('.desk-plan .button')?.textContent?.trim() ?? '', href: document.querySelector('.desk-plan .button')?.getAttribute('href') ?? '' })`);
+    await navigate(lesson.path);
+  }
   const completed = await completeLesson();
-  report.interactions[lesson.name] = { initial, wrong, after, completed };
+  report.interactions[lesson.name] = { initial, wrong, after, adaptiveBeforeProject, completed };
 }
 
 await clearAndReload("/learning/what-is-data/");

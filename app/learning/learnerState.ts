@@ -43,6 +43,16 @@ export type LearnerCapabilityState = {
   capabilities: Record<string, CapabilitySignal>;
 };
 
+export type LearningDecisionKind = "review" | "remediate" | "resume" | "apply" | "advance";
+export type LearningDecision = {
+  kind: LearningDecisionKind;
+  module: LearningModule;
+  heading: string;
+  description: string;
+  action: string;
+  href: string;
+};
+
 function blankSignal(slug: string): CapabilitySignal {
   return { slug, encountered: 0, attempts: 0, hints: 0, mistakes: 0, successfulRetries: 0, recalls: 0, applications: 0, demonstrations: 0, lastEvidence: "", stage: "seen" };
 }
@@ -89,7 +99,7 @@ export function capabilityStatements(): Array<{ slug: string; title: string; sta
 
 export function weakCapabilitySlugs(): string[] {
   const state = readLearnerState();
-  return Object.values(state.capabilities).filter((signal) => signal.hints > 0 || signal.mistakes > 0).sort((a, b) => (b.hints + b.mistakes) - (a.hints + a.mistakes)).map((signal) => signal.slug);
+  return Object.values(state.capabilities).filter((signal) => signal.lastEvidence === "hint" || signal.lastEvidence === "attempted").sort((a, b) => (b.hints + b.mistakes) - (a.hints + a.mistakes)).map((signal) => signal.slug);
 }
 
 export const goalLabels: Record<LearnerProfile["goal"], string> = {
@@ -182,18 +192,27 @@ export function readProfile(): LearnerProfile {
 }
 
 export function recommendedModule(): LearningModule {
-  if (typeof window === "undefined") return learningModules[0];
+  return learningDecision().module;
+}
+
+export function learningDecision(): LearningDecision {
+  if (typeof window === "undefined") return { kind: "advance", module: learningModules[0], heading: learningModules[0].title, description: `A focused checkpoint on ${learningModules[0].skill.toLowerCase()}`, action: "Open lesson", href: `/learning/${learningModules[0].slug}/` };
   const now = Date.now();
   const due = learningModules.find((module) => Number(window.localStorage.getItem(reviewKey(module.slug)) ?? 0) <= now && Number(window.localStorage.getItem(reviewKey(module.slug)) ?? 0) > 0);
-  if (due) return due;
+  if (due) return { kind: "review", module: due, heading: "Retrieve before you continue", description: `A short recall checkpoint is due for ${due.title}. Recall first, then return to the lesson.`, action: "Start review", href: "/learning/coach/" };
+  const projectModule = learningModules.find((module) => module.slug === "classification-and-patterns");
+  if (projectModule && window.localStorage.getItem(`bhavya-activity:${projectModule.slug}`) === "complete" && window.localStorage.getItem("bhavya-project:classification-and-patterns") !== "complete") return { kind: "apply", module: projectModule, heading: "Apply the evidence rule", description: "You completed the classification activity. Now use the same reasoning in a new claim before moving on.", action: "Open project", href: `/learning/${projectModule.slug}/` };
+  const weakModule = learningModules.find((module) => module.slug === weakCapabilitySlugs()[0]);
+  if (weakModule) return { kind: "remediate", module: weakModule, heading: "Strengthen one weak concept", description: `Your recent attempt on ${weakModule.title} is not yet demonstrated. Use a focused explanation and retry before taking on more difficulty.`, action: "Target weak spot", href: "/learning/coach/" };
+  const unfinished = learningModules.find((module) => window.localStorage.getItem(`bhavya-attempt:${module.slug}`) === "started" && window.localStorage.getItem(`bhavya-lesson:${module.slug}`) !== "complete");
+  if (unfinished) return { kind: "resume", module: unfinished, heading: `Resume ${unfinished.title}`, description: "You have already started this lesson. Continue from the activity and leave a reflection when you are ready.", action: "Resume lesson", href: `/learning/${unfinished.slug}/` };
   let diagnostic: { weakSlugs?: string[]; strongSlugs?: string[] } = {};
   try { diagnostic = JSON.parse(window.localStorage.getItem(diagnosticKey) ?? "{}"); } catch { diagnostic = {}; }
   const targeted = learningModules.find((module) => diagnostic.weakSlugs?.includes(module.slug));
-  if (targeted) return targeted;
-  const weak = learningModules
-    .filter((module) => window.localStorage.getItem(coachCompleteKey(module.slug)) !== "complete")
-    .sort((a, b) => Number(window.localStorage.getItem(coachMissKey(b.slug)) ?? 0) - Number(window.localStorage.getItem(coachMissKey(a.slug)) ?? 0))[0];
-  return weak ?? learningModules.find((module) => window.localStorage.getItem(`bhavya-lesson:${module.slug}`) !== "complete") ?? learningModules[0];
+  if (targeted) return { kind: "remediate", module: targeted, heading: "Begin with the concept you missed", description: `Your diagnostic pointed to ${targeted.title}. Start there so the path responds to what you already know.`, action: "Open targeted lesson", href: `/learning/${targeted.slug}/` };
+  const strong = new Set(diagnostic.strongSlugs ?? []);
+  const next = learningModules.find((module) => window.localStorage.getItem(`bhavya-lesson:${module.slug}`) !== "complete" && !strong.has(module.slug)) ?? learningModules.find((module) => window.localStorage.getItem(`bhavya-lesson:${module.slug}`) !== "complete") ?? learningModules[0];
+  return { kind: "advance", module: next, heading: next.title, description: `A focused checkpoint on ${next.skill.toLowerCase()}`, action: "Open lesson", href: `/learning/${next.slug}/` };
 }
 
 export function dueReviewCount(): number {

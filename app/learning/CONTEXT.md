@@ -53,6 +53,7 @@ Read `curriculum/CONTEXT.md` before changing educational content. Use `skills/bh
 - `Diagnostic.tsx` and `diagnostic/page.tsx` provide an optional four-question starting check with retryable feedback and targeted recommendation.
 - `ProjectMilestone.tsx` adds a guided evidence brief and transparent application rubric to the final classification lesson.
 - `coachPolicy.ts` defines a deterministic evaluator behind a future tutor/coach provider boundary.
+- `learningState.ts` resolves the next learning action from due review, unfinished project work, unresolved attempts, unfinished lessons, diagnostic signals, and then the next appropriate challenge.
 - The current project milestone is a local guided practice brief, not cloud submission, human review, or an official Foundation assignment.
 
 ## Routed references
