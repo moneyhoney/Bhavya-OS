@@ -108,6 +108,11 @@ async function clearAndReload(path) {
   if (path !== "/learning/coach/" && path !== "/learning/diagnostic/") await waitFor('[data-learning-hydrated="true"]');
 }
 
+async function pressKey(key, code, virtualKeyCode) {
+  await send("Input.dispatchKeyEvent", { type: "keyDown", key, code, text: key === "Enter" ? "\r" : undefined, unmodifiedText: key === "Enter" ? "\r" : undefined, windowsVirtualKeyCode: virtualKeyCode, nativeVirtualKeyCode: virtualKeyCode });
+  await send("Input.dispatchKeyEvent", { type: "keyUp", key, code, windowsVirtualKeyCode: virtualKeyCode, nativeVirtualKeyCode: virtualKeyCode });
+}
+
 async function fillText(selector, value) {
   await evaluate(`(() => {
     const field = document.querySelector(${JSON.stringify(selector)});
@@ -359,24 +364,30 @@ await send("Emulation.setEmulatedMedia", { features: [] });
 await send("Emulation.clearDeviceMetricsOverride");
 
 await clearAndReload("/learning/what-is-a-computer/");
-await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
-await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
+await pressKey("Tab", "Tab", 9);
 report.keyboard.firstTab = await evaluate(`({
   tag: document.activeElement?.tagName ?? '',
   name: document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent?.trim()?.slice(0, 60) ?? '',
 })`);
 for (let index = 0; index < 9; index += 1) {
-  await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
-  await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
+  await pressKey("Tab", "Tab", 9);
 }
 report.keyboard.activityControl = await evaluate(`({
   tag: document.activeElement?.tagName ?? '',
   text: document.activeElement?.textContent?.trim() ?? '',
 })`);
-await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
-await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
+await evaluate("document.querySelector('.activity-frame .button')?.focus()");
+await pressKey("Enter", "Enter", 13);
 await wait(120);
 report.keyboard.afterEnter = await state();
+await evaluate(`document.querySelector('.sequence-row:nth-child(2) button[aria-label*="up"]')?.focus()`);
+await pressKey("Enter", "Enter", 13);
+await evaluate(`document.querySelector('.sequence-row:nth-child(4) button[aria-label*="up"]')?.focus()`);
+await pressKey("Enter", "Enter", 13);
+await evaluate("document.querySelector('.activity-frame .button')?.focus()");
+await pressKey("Enter", "Enter", 13);
+await wait(120);
+report.keyboard.afterCorrection = await state();
 
 report.runtime = {
   exceptions: runtimeEvents.filter((event) => event.type === "exception"),
