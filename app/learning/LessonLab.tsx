@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { learningModules, type LearningModule } from "./data";
 import ProjectMilestone from "./ProjectMilestone";
-import { capabilityFor, recordLearningEvidence } from "./learnerState";
+import { capabilityFor, isProjectComplete, recordLearningEvidence } from "./learnerState";
 
 type LessonLabProps = { module: LearningModule };
 
@@ -41,7 +41,7 @@ export default function LessonLab({ module }: LessonLabProps) {
     setAttempted(window.localStorage.getItem(`bhavya-attempt:${module.slug}`) === "started");
     setActivityComplete(window.localStorage.getItem(`bhavya-activity:${module.slug}`) === "complete");
     setReflection(window.localStorage.getItem(`bhavya-reflection:${module.slug}`) ?? "");
-    setProjectComplete(module.slug !== "classification-and-patterns" || window.localStorage.getItem("bhavya-project:classification-and-patterns") === "complete");
+    setProjectComplete(module.slug !== "classification-and-patterns" || isProjectComplete());
     setHydrated(true);
   }, [module.slug]);
   const markAttempted = () => {

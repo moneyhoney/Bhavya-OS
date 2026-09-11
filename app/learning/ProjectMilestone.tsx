@@ -2,9 +2,8 @@
 
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
-import { recordLearningEvidence } from "./learnerState";
+import { projectKey, recordLearningEvidence } from "./learnerState";
 
-const projectKey = "bhavya-project:classification-and-patterns";
 const rubric = [
   { id: "claim", label: "Names the claim or label being checked.", test: (text: string) => /claim|label|statement|forecast/i.test(text) },
   { id: "evidence", label: "Names evidence, a source, or a comparison.", test: (text: string) => /evidence|source|compare|photograph|date|record/i.test(text) },

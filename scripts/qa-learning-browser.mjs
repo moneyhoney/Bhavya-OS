@@ -23,12 +23,14 @@ let messageId = 0;
 const pending = new Map();
 const runtimeEvents = [];
 const failedRequests = [];
+let currentPageUrl = "";
 
 socket.addEventListener("message", (event) => {
   const message = JSON.parse(event.data);
+  if (message.method === "Page.frameNavigated" && message.params.frame.parentId === undefined) currentPageUrl = message.params.frame.url;
   if (message.method === "Runtime.exceptionThrown") {
     const details = message.params.exceptionDetails ?? {};
-    runtimeEvents.push({ type: "exception", text: details.text ?? "runtime exception", description: details.exception?.description ?? "", url: details.url ?? "", lineNumber: details.lineNumber ?? 0, columnNumber: details.columnNumber ?? 0 });
+    runtimeEvents.push({ type: "exception", page: currentPageUrl, text: details.text ?? "runtime exception", description: details.exception?.description ?? "", url: details.url ?? "", lineNumber: details.lineNumber ?? 0, columnNumber: details.columnNumber ?? 0 });
   }
   if (message.method === "Log.entryAdded" && ["error", "warning"].includes(message.params.entry.level)) {
     runtimeEvents.push({ type: message.params.entry.level, text: message.params.entry.text });
@@ -148,12 +150,16 @@ async function completeLesson() {
     await fillText('#project-draft', 'The claim is a forecast. I would inspect the evidence, source, and date. If uncertain, I would check before trust.');
     await click('.project-milestone .button');
     await waitForExpression("Boolean(document.querySelector('.project-feedback.success'))");
+    await evaluate("location.reload()");
+    await waitFor('.lesson-lab');
+    await waitForExpression("document.querySelector('[data-learning-hydrated=\\\"true\\\"]') !== null");
+    await waitForExpression("!document.querySelector('.lesson-completion strong')?.textContent?.includes('Apply the evidence rule')");
   }
   await evaluate(`(() => { const field = document.querySelector('#lesson-reflection'); if (!field) throw new Error('Reflection field is missing'); const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set; field.focus(); setter.call(field, 'I would test one more example and compare its evidence.'); field.dispatchEvent(new Event('input', { bubbles: true })); field.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
   await wait(200);
   await click(".lesson-completion button");
   await wait(120);
-  return { state: await state(), storage: await storage(), project: hasProject ? await evaluate(`({ complete: Boolean(document.querySelector('.project-feedback.success')), feedback: document.querySelector('.project-feedback')?.textContent?.trim() ?? '' })`) : null };
+  return { state: await state(), storage: await storage(), project: hasProject ? await evaluate(`({ complete: Boolean(document.querySelector('.project-complete')), feedback: document.querySelector('.project-feedback')?.textContent?.trim() ?? '' })`) : null };
 }
 
 await send("Runtime.enable");
@@ -223,6 +229,9 @@ report.interactions.sequence.beforeActivity = await state();
 await click(".activity-frame .button");
 await wait(80);
 report.interactions.sequence.wrong = await state();
+await navigate("/learning/");
+report.interactions.sequence.adaptiveAfterWrong = await evaluate(`({ heading: document.querySelector('.desk-plan h3')?.textContent?.trim() ?? '', action: document.querySelector('.desk-plan .button')?.textContent?.trim() ?? '', href: document.querySelector('.desk-plan .button')?.getAttribute('href') ?? '' })`);
+await navigate("/learning/what-is-a-computer/");
 await click('.sequence-row:nth-child(2) button[aria-label*="up"]');
 await wait(80);
 await click('.sequence-row:nth-child(4) button[aria-label*="up"]');

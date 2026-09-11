@@ -3,6 +3,7 @@ import { learningModules, LearningModule } from "./data";
 export const learnerProfileKey = "bhavya-learner-profile";
 export const learnerStateKey = "bhavya-learner-state";
 export const diagnosticKey = "bhavya-diagnostic";
+export const projectKey = "bhavya-project:classification-and-patterns";
 export const coachMissKey = (slug: string) => `bhavya-coach-misses:${slug}`;
 export const coachCompleteKey = (slug: string) => `bhavya-coach:${slug}`;
 export const reviewKey = (slug: string) => `bhavya-review:${slug}`;
@@ -86,6 +87,13 @@ export function recordLearningEvidence(slug: string, event: EvidenceEvent): Capa
 
 export function capabilityFor(slug: string): CapabilitySignal {
   return readLearnerState().capabilities[slug] ?? blankSignal(slug);
+}
+
+export function isProjectComplete(): boolean {
+  if (typeof window === "undefined") return false;
+  const saved = window.localStorage.getItem(projectKey);
+  if (saved === "complete") return true;
+  try { return Boolean((JSON.parse(saved ?? "{}") as { complete?: boolean }).complete); } catch { return false; }
 }
 
 export function capabilityStatements(): Array<{ slug: string; title: string; statement: string; stage: CapabilityStage }> {
@@ -206,7 +214,7 @@ export function learningDecision(): LearningDecision {
   const due = learningModules.find((module) => Number(window.localStorage.getItem(reviewKey(module.slug)) ?? 0) <= now && Number(window.localStorage.getItem(reviewKey(module.slug)) ?? 0) > 0);
   if (due) return { kind: "review", module: due, heading: "Retrieve before you continue", description: `A short recall checkpoint is due for ${due.title}. Recall first, then return to the lesson.`, action: "Start review", href: "/learning/coach/" };
   const projectModule = learningModules.find((module) => module.slug === "classification-and-patterns");
-  if (projectModule && window.localStorage.getItem(`bhavya-activity:${projectModule.slug}`) === "complete" && window.localStorage.getItem("bhavya-project:classification-and-patterns") !== "complete") return { kind: "apply", module: projectModule, heading: "Apply the evidence rule", description: "You completed the classification activity. Now use the same reasoning in a new claim before moving on.", action: "Open project", href: `/learning/${projectModule.slug}/` };
+  if (projectModule && window.localStorage.getItem(`bhavya-activity:${projectModule.slug}`) === "complete" && !isProjectComplete()) return { kind: "apply", module: projectModule, heading: "Apply the evidence rule", description: "You completed the classification activity. Now use the same reasoning in a new claim before moving on.", action: "Open project", href: `/learning/${projectModule.slug}/` };
   const weakModule = learningModules.find((module) => module.slug === weakCapabilitySlugs()[0]);
   if (weakModule) return { kind: "remediate", module: weakModule, heading: "Strengthen one weak concept", description: `Your recent attempt on ${weakModule.title} is not yet demonstrated. Use a focused explanation and retry before taking on more difficulty.`, action: "Target weak spot", href: "/learning/coach/" };
   const unfinished = learningModules.find((module) => window.localStorage.getItem(`bhavya-attempt:${module.slug}`) === "started" && window.localStorage.getItem(`bhavya-lesson:${module.slug}`) !== "complete");
